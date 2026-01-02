@@ -456,14 +456,6 @@ function ReportContent() {
           position: 'relative',
           zIndex: 10
         }} className="hero-container-desktop">
-          <div style={{ 
-            maxWidth: '720px', 
-            margin: '0 auto', 
-            padding: '48px 24px',
-            position: 'relative',
-            zIndex: 10
-          }} className="hero-container-mobile">
-          
           <div 
             ref={reportContainerRef} 
             style={{ 
@@ -480,13 +472,6 @@ function ReportContent() {
               marginBottom: '0',
               textAlign: 'left'
             }} className="hero-section-desktop">
-              <section style={{
-                width: '100%',
-                paddingTop: '48px',
-                paddingBottom: '32px',
-                marginBottom: '0',
-                textAlign: 'left'
-              }} className="hero-section-mobile">
               
               <h1 style={{ 
                 fontSize: 'clamp(32px, 4vw, 44px)', 
@@ -576,7 +561,6 @@ function ReportContent() {
               }}>
                 Não é diagnóstico. É uma leitura de padrões e direcionamento prático.
               </p>
-              </section>
             </section>
 
             {/* Container com duas colunas no desktop */}
@@ -640,76 +624,6 @@ function ReportContent() {
                 flex: 1,
                 minWidth: 0
               }} className="content-main-desktop">
-
-            {/* Índice Mobile - Acordeão discreto */}
-            <div style={{
-              display: 'block',
-              marginBottom: '32px'
-            }} className="table-of-contents-mobile">
-              <button
-                onClick={() => setIsTableOfContentsOpen(!isTableOfContentsOpen)}
-                style={{
-                  width: '100%',
-                  padding: '8px 0',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: '#BDBDBD',
-                  fontSize: '13px',
-                  fontWeight: 300,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  opacity: 0.6,
-                  transition: 'opacity 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = '0.8';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = '0.6';
-                }}
-              >
-                <span>Ver índice</span>
-                <span style={{ fontSize: '10px', opacity: 0.5, marginLeft: '8px' }}>
-                  {isTableOfContentsOpen ? '▼' : '▶'}
-                </span>
-              </button>
-              
-              {isTableOfContentsOpen && (
-                <nav style={{
-                  marginTop: '16px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  padding: '0'
-                }}>
-                  {sortedBlocks.map((block, idx) => (
-                    <a
-                      key={block.block_id || idx}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        scrollToBlock(block.block_id || `block-${idx}`);
-                      }}
-                      style={{
-                        display: 'block',
-                        padding: '10px 0',
-                        fontSize: '14px',
-                        color: '#EDEDED',
-                        opacity: 0.72,
-                        cursor: 'pointer',
-                        textDecoration: 'none',
-                        borderBottom: 'none',
-                        fontWeight: 300,
-                        lineHeight: 1.5
-                      }}
-                    >
-                      {removeBlockPrefix(block.title || '')}
-                    </a>
-                  ))}
-                </nav>
-              )}
-            </div>
 
             {/* BLOCOS PREMIUM */}
             {sortedBlocks.map((block, index) => {
@@ -869,7 +783,7 @@ function ReportContent() {
               paddingTop: '48px',
               borderTop: '1px solid rgba(255, 255, 255, 0.08)',
               textAlign: 'center'
-            }}>
+            }} className="footer-section">
               <h2 style={{ 
                 fontSize: '28px', 
                 marginBottom: '20px',
@@ -925,6 +839,409 @@ function ReportContent() {
               </p>
             </section>
           </div>
+        </div>
+
+        {/* Container Mobile */}
+        <div style={{ 
+          maxWidth: '720px', 
+          margin: '0 auto', 
+          padding: '48px 24px',
+          position: 'relative',
+          zIndex: 10
+        }} className="hero-container-mobile">
+          <div 
+            ref={reportContainerRef} 
+            style={{ 
+              position: 'relative',
+              zIndex: 2,
+              color: '#EDEDED'
+            }}
+          >
+            {/* CAPA Mobile */}
+            <section style={{
+              width: '100%',
+              paddingTop: '48px',
+              paddingBottom: '32px',
+              marginBottom: '0',
+              textAlign: 'left'
+            }} className="hero-section-mobile">
+              
+              <h1 style={{ 
+                fontSize: 'clamp(32px, 4vw, 44px)', 
+                fontWeight: 600, 
+                marginBottom: '14px',
+                color: '#EDEDED',
+                lineHeight: 1.08,
+                letterSpacing: '-0.02em'
+              }}>
+                Leitura completa do seu padrão de decisão
+              </h1>
+              
+              <p style={{
+                fontSize: 'clamp(16px, 2vw, 18px)',
+                opacity: 0.78,
+                marginBottom: '14px',
+                color: '#BDBDBD',
+                lineHeight: 1.55,
+                fontWeight: 300,
+                maxWidth: '520px'
+              }}>
+                Leitura completa para entender seu padrão e ajustar decisões com método.<br />
+                Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
+              </p>
+
+              {/* Micro selo de credibilidade */}
+              <p style={{
+                fontSize: '13px',
+                opacity: 0.6,
+                marginTop: '14px',
+                marginBottom: '0',
+                color: '#BDBDBD',
+                fontWeight: 300
+              }}>
+                Baseado nas suas respostas. Estrutura em 7 blocos. Leitura de 5 a 8 minutos.
+              </p>
+
+              {/* Badge do perfil */}
+              {(() => {
+                const profileName = report.profileName || extractProfileNameFromFirstParagraph(sortedBlocks);
+                if (profileName) {
+                  return (
+                    <div style={{
+                      marginTop: '14px'
+                    }}>
+                      <div style={{
+                        fontSize: '12px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        opacity: 0.6,
+                        color: '#BDBDBD',
+                        fontWeight: 300
+                      }}>
+                        Seu padrão dominante
+                      </div>
+                      <div style={{
+                        fontSize: 'clamp(22px, 3vw, 26px)',
+                        fontWeight: 600,
+                        marginTop: '6px',
+                        color: '#EDEDED'
+                      }}>
+                        {String(profileName)}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Divisor discreto */}
+              <div style={{
+                height: '1px',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                marginTop: '28px',
+                marginBottom: '28px'
+              }} />
+
+              {/* Disclaimer */}
+              <p style={{
+                fontSize: '13px',
+                opacity: 0.55,
+                marginTop: '16px',
+                marginBottom: '0',
+                color: '#BDBDBD',
+                fontWeight: 300,
+                textAlign: 'left'
+              }}>
+                Não é diagnóstico. É uma leitura de padrões e direcionamento prático.
+              </p>
+            </section>
+
+            {/* Container com duas colunas no desktop - Mobile mostra apenas conteúdo */}
+            <div style={{
+              display: 'block'
+            }} className="content-layout-mobile">
+              
+              {/* Índice Mobile - Acordeão discreto */}
+              <div style={{
+                display: 'block',
+                marginBottom: '32px'
+              }} className="table-of-contents-mobile">
+                <button
+                  onClick={() => setIsTableOfContentsOpen(!isTableOfContentsOpen)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 0',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: '#BDBDBD',
+                    fontSize: '13px',
+                    fontWeight: 300,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    opacity: 0.6,
+                    transition: 'opacity 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '0.8';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '0.6';
+                  }}
+                >
+                  <span>Ver índice</span>
+                  <span style={{ fontSize: '10px', opacity: 0.5, marginLeft: '8px' }}>
+                    {isTableOfContentsOpen ? '▼' : '▶'}
+                  </span>
+                </button>
+                
+                {isTableOfContentsOpen && (
+                  <nav style={{
+                    marginTop: '16px',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    padding: '0'
+                  }}>
+                    {sortedBlocks.map((block, idx) => (
+                      <a
+                        key={block.block_id || idx}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          scrollToBlock(block.block_id || `block-${idx}`);
+                        }}
+                        style={{
+                          display: 'block',
+                          padding: '10px 0',
+                          fontSize: '14px',
+                          color: '#EDEDED',
+                          opacity: 0.72,
+                          cursor: 'pointer',
+                          textDecoration: 'none',
+                          borderBottom: 'none',
+                          fontWeight: 300,
+                          lineHeight: 1.5
+                        }}
+                      >
+                        {removeBlockPrefix(block.title || '')}
+                      </a>
+                    ))}
+                  </nav>
+                )}
+              </div>
+
+              {/* BLOCOS PREMIUM Mobile */}
+              {sortedBlocks.map((block, index) => {
+                const blockOrder = block.order || index + 1;
+                const hasCard = shouldHaveCard(blockOrder);
+                const visualStyle = getBlockVisualStyle(blockOrder);
+                const cardStyle = hasCard ? getCardStyle(blockOrder) : null;
+
+                return (
+                  <section 
+                    id={block.block_id || `block-${index}`}
+                    key={block.block_id || index}
+                    style={visualStyle}
+                  >
+                    {hasCard ? (
+                      <div style={cardStyle}>
+                        <h2 style={{ 
+                          fontSize: '28px', 
+                          fontWeight: 400, 
+                          marginBottom: '12px',
+                          marginTop: '0',
+                          color: '#E5E5E5',
+                          lineHeight: 1.4,
+                          letterSpacing: '-0.3px'
+                        }}>
+                          {removeBlockPrefix(block.title || '')}
+                        </h2>
+                        
+                        {block.subtitle && (
+                          <p style={{ 
+                            fontStyle: 'italic', 
+                            fontSize: '15px', 
+                            opacity: 0.65, 
+                            marginTop: '8px',
+                            marginBottom: '28px',
+                            color: '#E5E5E5',
+                            lineHeight: 1.5,
+                            fontWeight: 300
+                          }}>
+                            {String(block.subtitle)}
+                          </p>
+                        )}
+                        
+                        <div style={{
+                          maxWidth: '68ch'
+                        }}>
+                        {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
+                          <>
+                            {block.paragraphs.map((text, idx) => {
+                              if (!text || String(text).trim() === '') return null;
+                              const textStr = String(text);
+                              const highlightedText = highlightKeyPhrases(textStr);
+                              const isKeyPhrase = highlightedText !== textStr;
+                              
+                              return (
+                                <div
+                                  key={idx}
+                                  dangerouslySetInnerHTML={{ __html: highlightedText }}
+                                  style={{ 
+                                    fontSize: isKeyPhrase ? '20px' : '17px', 
+                                    lineHeight: isKeyPhrase ? 1.7 : 1.8,
+                                    opacity: isKeyPhrase ? 0.92 : 0.85,
+                                    marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '36px' : '24px') : '0',
+                                    color: '#E5E5E5',
+                                    fontWeight: 300,
+                                    transition: 'opacity 0.2s ease',
+                                    textAlign: 'justify'
+                                  }}
+                                />
+                              );
+                            })}
+                          </>
+                        )}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <h2 style={{ 
+                          fontSize: '28px', 
+                          fontWeight: 400, 
+                          marginBottom: '12px',
+                          marginTop: '0',
+                          color: '#E5E5E5',
+                          lineHeight: 1.4,
+                          letterSpacing: '-0.3px'
+                        }}>
+                          {removeBlockPrefix(block.title || '')}
+                        </h2>
+                        
+                        {block.subtitle && (
+                          <p style={{ 
+                            fontStyle: 'italic', 
+                            fontSize: '15px', 
+                            opacity: 0.65, 
+                            marginTop: '8px',
+                            marginBottom: '28px',
+                            color: '#E5E5E5',
+                            lineHeight: 1.5,
+                            fontWeight: 300
+                          }}>
+                            {String(block.subtitle)}
+                          </p>
+                        )}
+                        
+                        <div style={{
+                          maxWidth: '68ch'
+                        }}>
+                          {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
+                            <>
+                              {block.paragraphs.map((text, idx) => {
+                                if (!text || String(text).trim() === '') return null;
+                                const textStr = String(text);
+                                const highlightedText = highlightKeyPhrases(textStr);
+                                const isKeyPhrase = highlightedText !== textStr;
+                                
+                                return (
+                                  <div
+                                    key={idx}
+                                    dangerouslySetInnerHTML={{ __html: highlightedText }}
+                                    style={{ 
+                                      fontSize: isKeyPhrase ? '20px' : '17px', 
+                                      lineHeight: isKeyPhrase ? 1.7 : 1.8,
+                                      opacity: isKeyPhrase ? 0.92 : 0.85,
+                                      marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '36px' : '24px') : '0',
+                                      color: '#E5E5E5',
+                                      fontWeight: 300,
+                                      transition: 'opacity 0.2s ease',
+                                      textAlign: 'justify'
+                                    }}
+                                  />
+                                );
+                              })}
+                            </>
+                          )}
+                        </div>
+                      </>
+                    )}
+                    
+                    {index < sortedBlocks.length - 1 && !hasCard && (
+                      <div style={{
+                        marginTop: '20px',
+                        height: '1px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                        width: '100%'
+                      }} />
+                    )}
+                  </section>
+                );
+              })}
+
+              {/* RODAPÉ PREMIUM Mobile */}
+              <section style={{ 
+                marginTop: '80px',
+                paddingTop: '48px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                textAlign: 'center'
+              }} className="footer-section">
+                <h2 style={{ 
+                  fontSize: '28px', 
+                  marginBottom: '20px',
+                  color: '#E5E5E5',
+                  fontWeight: 400,
+                  letterSpacing: '-0.3px'
+                }}>
+                  Leve este relatório com você
+                </h2>
+                <p style={{ 
+                  fontSize: '17px', 
+                  opacity: 0.7, 
+                  marginBottom: '32px',
+                  color: '#E5E5E5',
+                  lineHeight: 1.6,
+                  fontWeight: 300,
+                  maxWidth: '500px',
+                  margin: '0 auto 32px auto'
+                }}>
+                  Este material foi criado para ser relido com calma. Você pode baixar a versão em PDF para acessar quando quiser.
+                </p>
+                <button
+                  onClick={handleDownloadPDF}
+                  style={{
+                    padding: '16px 32px',
+                    fontSize: '16px',
+                    fontWeight: 400,
+                    backgroundColor: '#ffffff',
+                    color: '#000000',
+                    border: 'none',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    letterSpacing: '0.3px',
+                    marginTop: '8px'
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.8 }}>
+                    <path d="M17.5 12.5V15.8333C17.5 16.2754 17.3244 16.6993 17.0118 17.0118C16.6993 17.3244 16.2754 17.5 15.8333 17.5H4.16667C3.72464 17.5 3.30072 17.3244 2.98816 17.0118C2.67559 16.6993 2.5 16.2754 2.5 15.8333V12.5M13.3333 8.33333L10 11.6667M10 11.6667L6.66667 8.33333M10 11.6667V2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Baixar PDF
+                </button>
+                <p style={{
+                  fontSize: '14px',
+                  opacity: 0.6,
+                  color: '#E5E5E5',
+                  marginTop: '20px',
+                  fontWeight: 300
+                }}>
+                  Recomendado para leitura offline
+                </p>
+              </section>
+            </div>
           </div>
         </div>
 
