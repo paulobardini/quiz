@@ -27,6 +27,20 @@ export default function PaywallPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // Habilitar scroll na página
+    const html = document.documentElement;
+    const body = document.body;
+    
+    html.classList.add("paywall-page-active");
+    body.classList.add("paywall-page-active");
+    
+    // Forçar remoção de bloqueios de scroll
+    body.style.position = "relative";
+    body.style.overflow = "auto";
+    body.style.height = "auto";
+    html.style.overflow = "auto";
+    html.style.height = "auto";
+    
     const sessionId = getSessionId();
     const resultId = getResultId();
     
@@ -63,6 +77,17 @@ export default function PaywallPage() {
         console.error('[PAYWALL] ❌ Botão NÃO encontrado no DOM!');
       }
     }, 100);
+    
+    // Cleanup ao desmontar
+    return () => {
+      html.classList.remove("paywall-page-active");
+      body.classList.remove("paywall-page-active");
+      body.style.position = "";
+      body.style.overflow = "";
+      body.style.height = "";
+      html.style.overflow = "";
+      html.style.height = "";
+    };
   }, [router]);
 
   const handleCheckout = () => {
@@ -93,14 +118,14 @@ export default function PaywallPage() {
   };
 
   return (
-    <main className="page-root" style={{ overflowY: 'auto', height: '100vh' }}>
+    <main className="page-root paywall-page" style={{ overflowY: 'auto', height: 'auto', minHeight: '100vh' }}>
       <div
         className="page-bg"
         style={{ backgroundImage: `url(${LP_BG_URL})` }}
       />
       <div className="page-overlay" />
-      <section className="page-center" style={{ padding: '24px', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="page-card" style={{ maxWidth: "640px", borderRadius: "26px", padding: "48px 40px", margin: 'auto' }}>
+      <section className="page-center paywall-center" style={{ padding: '24px', minHeight: '100vh', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflow: 'visible' }}>
+        <div className="page-card" style={{ maxWidth: "640px", borderRadius: "26px", padding: "48px 40px", margin: '40px auto' }}>
           <div className="mb-10">
             <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10" style={{ backdropFilter: "blur(8px)" }}>
               <svg

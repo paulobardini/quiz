@@ -467,6 +467,33 @@ body.result-page-active {
   width: 100%;
 }
 
+/* Página paywall permite scroll */
+html.paywall-page-active,
+body.paywall-page-active {
+  overflow: auto !important;
+  height: auto !important;
+  position: relative !important;
+}
+
+.page-root.paywall-page {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  height: auto !important;
+  min-height: 100vh;
+  position: relative;
+}
+
+.page-root.paywall-page .page-center {
+  overflow: visible !important;
+  align-items: flex-start;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  min-height: 100vh;
+  height: auto;
+  position: relative;
+  width: 100%;
+}
+
 .page-card {
   width: 100%;
   text-align: center;
