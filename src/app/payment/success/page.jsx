@@ -38,28 +38,14 @@ export default function PaymentSuccessPage() {
     html.style.overflow = "auto";
     html.style.height = "auto";
 
-    const checkPayment = async () => {
+    const redirectToReport = async () => {
       try {
         // Obter parâmetros da URL diretamente
         const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('order_id') || urlParams.get('orderId') || urlParams.get('order_code');
         const s1 = urlParams.get('s1');
         
-        console.log('[PAYMENT SUCCESS] Parâmetros recebidos:', { 
-          order_id: urlParams.get('order_id'),
-          orderId: urlParams.get('orderId'),
-          order_code: urlParams.get('order_code'),
-          orderId_final: orderId,
-          s1 
-        });
+        console.log('[PAYMENT SUCCESS] Parâmetros recebidos:', { s1 });
         
-        if (!orderId && !s1) {
-          console.warn('[PAYMENT SUCCESS] Nenhum parâmetro de identificação encontrado');
-          setStatus('error');
-          setMessage('Não foi possível identificar o pedido. Verifique seu e-mail ou entre em contato com o suporte.');
-          return;
-        }
-
         // Tentar obter sessionId ou resultId do storage
         const sessionId = getSessionId();
         const resultId = getResultId();
@@ -70,120 +56,51 @@ export default function PaymentSuccessPage() {
         // Usar s1 da URL se disponível, senão usar sessionId do storage
         const trackingSessionId = s1 || sessionId;
         
-        if (!trackingSessionId && !resultId) {
-          console.warn('[PAYMENT SUCCESS] Nenhum ID de sessão encontrado');
-          setStatus('error');
-          setMessage('Não foi possível identificar sua sessão. Por favor, refaça o quiz.');
-          return;
-        }
-
-        // Verificar pagamento no backend
-        const checkUrl = new URL('/api/payment/check', window.location.origin);
-        if (orderId) {
-          checkUrl.searchParams.set('order_id', orderId);
-        }
-        if (trackingSessionId) {
-          checkUrl.searchParams.set('session_id', trackingSessionId);
-        }
-        if (resultId) {
-          checkUrl.searchParams.set('result_id', resultId);
-        }
-
-        console.log('[PAYMENT SUCCESS] Verificando pagamento em:', checkUrl.toString());
+        setStatus('approved');
+        setMessage('Pagamento aprovado! Redirecionando para o relatório...');
         
-        const response = await fetch(checkUrl.toString(), {
-          method: 'GET',
-          cache: 'no-store',
-        });
-
-        console.log('[PAYMENT SUCCESS] Response status:', response.status, response.statusText);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('[PAYMENT SUCCESS] Erro na resposta:', response.status, errorText);
-          let errorData;
-          try {
-            errorData = JSON.parse(errorText);
-          } catch {
-            errorData = { error: errorText };
-          }
-          
-          // Se for erro 500, tentar novamente após alguns segundos
-          if (response.status === 500) {
-            setStatus('pending');
-            setMessage('Erro temporário ao verificar pagamento. Tentando novamente...');
-            setTimeout(() => {
-              checkPayment();
-            }, 3000);
-            return;
-          }
-          
-          setStatus('error');
-          setMessage(errorData.message || errorData.error || 'Erro ao verificar pagamento. Tente novamente mais tarde.');
-          return;
-        }
-
-        const data = await response.json();
-        console.log('[PAYMENT SUCCESS] Resposta da verificação:', data);
-
-        if (data.approved) {
-          setStatus('approved');
-          setMessage('Pagamento aprovado! Redirecionando para o relatório...');
-          
-          console.log('[PAYMENT SUCCESS] ✅ Pagamento aprovado! Redirecionando...');
-          console.log('[PAYMENT SUCCESS] ResultId:', resultId);
-          console.log('[PAYMENT SUCCESS] SessionId:', trackingSessionId);
-          
-          // Redirecionar para o relatório após um pequeno delay
-          setTimeout(async () => {
-            console.log('[PAYMENT SUCCESS] Executando redirecionamento...');
-            if (resultId) {
-              console.log('[PAYMENT SUCCESS] Redirecionando para /report com resultId:', resultId);
-              window.location.href = `/report?resultId=${resultId}`;
-            } else if (trackingSessionId) {
-              // Se não tem resultId, tentar buscar pelo sessionId
-              console.log('[PAYMENT SUCCESS] Buscando resultId pelo sessionId:', trackingSessionId);
-              try {
-                const resultResponse = await fetch(`/api/session/result-id?sessionId=${trackingSessionId}`);
-                if (resultResponse.ok) {
-                  const resultData = await resultResponse.json();
-                  if (resultData.resultId) {
-                    console.log('[PAYMENT SUCCESS] ResultId encontrado:', resultData.resultId);
-                    window.location.href = `/report?resultId=${resultData.resultId}`;
-                    return;
-                  }
+        console.log('[PAYMENT SUCCESS] ✅ Redirecionando para relatório...');
+        console.log('[PAYMENT SUCCESS] ResultId:', resultId);
+        console.log('[PAYMENT SUCCESS] SessionId:', trackingSessionId);
+        
+        // Redirecionar para o relatório após um pequeno delay
+        setTimeout(async () => {
+          console.log('[PAYMENT SUCCESS] Executando redirecionamento...');
+          if (resultId) {
+            console.log('[PAYMENT SUCCESS] Redirecionando para /report com resultId:', resultId);
+            window.location.href = `/report?resultId=${resultId}`;
+          } else if (trackingSessionId) {
+            // Se não tem resultId, tentar buscar pelo sessionId
+            console.log('[PAYMENT SUCCESS] Buscando resultId pelo sessionId:', trackingSessionId);
+            try {
+              const resultResponse = await fetch(`/api/session/result-id?sessionId=${trackingSessionId}`);
+              if (resultResponse.ok) {
+                const resultData = await resultResponse.json();
+                if (resultData.resultId) {
+                  console.log('[PAYMENT SUCCESS] ResultId encontrado:', resultData.resultId);
+                  window.location.href = `/report?resultId=${resultData.resultId}`;
+                  return;
                 }
-              } catch (err) {
-                console.error('[PAYMENT SUCCESS] Erro ao buscar resultId:', err);
               }
-              // Se não encontrou resultId, redirecionar para /report mesmo assim
-              console.log('[PAYMENT SUCCESS] Redirecionando para /report sem resultId');
-              window.location.href = '/report';
-            } else {
-              console.log('[PAYMENT SUCCESS] Redirecionando para /report sem parâmetros');
-              window.location.href = '/report';
+            } catch (err) {
+              console.error('[PAYMENT SUCCESS] Erro ao buscar resultId:', err);
             }
-          }, 1500);
-        } else if (data.pending) {
-          setStatus('pending');
-          setMessage('Pagamento em processamento. Você receberá um e-mail quando for aprovado. Verificando novamente em alguns segundos...');
-          
-          // Tentar novamente após 5 segundos
-          setTimeout(() => {
-            checkPayment();
-          }, 5000);
-        } else {
-          setStatus('error');
-          setMessage(data.message || 'Pagamento não encontrado ou ainda não foi processado. Verifique seu e-mail ou aguarde alguns minutos.');
-        }
+            // Se não encontrou resultId, redirecionar para /report mesmo assim
+            console.log('[PAYMENT SUCCESS] Redirecionando para /report sem resultId');
+            window.location.href = '/report';
+          } else {
+            console.log('[PAYMENT SUCCESS] Redirecionando para /report sem parâmetros');
+            window.location.href = '/report';
+          }
+        }, 1000);
       } catch (error) {
-        console.error('[PAYMENT SUCCESS] Erro ao verificar pagamento:', error);
+        console.error('[PAYMENT SUCCESS] Erro ao redirecionar:', error);
         setStatus('error');
-        setMessage('Erro ao verificar o pagamento. Por favor, entre em contato com o suporte.');
+        setMessage('Erro ao redirecionar. Por favor, entre em contato com o suporte.');
       }
     };
 
-    checkPayment();
+    redirectToReport();
 
     // Cleanup
     return () => {
