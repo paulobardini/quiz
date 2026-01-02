@@ -160,14 +160,14 @@ export default function PaywallPage() {
         <div className="page-card" style={{ maxWidth: "640px", borderRadius: "26px", padding: "48px 40px", margin: '40px auto' }}>
           <div className="mb-12" style={{ textAlign: 'center' }}>
             <h1 className="page-title" style={{ fontSize: "38px", marginBottom: "16px", fontWeight: 600, lineHeight: 1.2, color: "#FFFFFF" }}>
-              Acesso Premium ao Seu Mapa de Decisão
+              Acesso Premium ao<br />Seu Mapa de Decisão
             </h1>
             <p className="text-white/80" style={{ fontSize: "18px", lineHeight: 1.6, maxWidth: "580px", margin: "0 auto", fontWeight: 400 }}>
               Compreenda como seus padrões funcionam na prática e ajuste decisões com mais clareza, método e economia de energia.
             </p>
           </div>
 
-          <div className="mb-10" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="mb-10" style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginTop: '32px' }}>
             <div>
               <h3 className="font-semibold text-white mb-2" style={{ fontSize: "17px", fontWeight: 600 }}>
                 Entendimento Profundo do Seu Funcionamento
