@@ -104,7 +104,14 @@ export function redirectToKiwifyCheckout(
   try {
     const checkoutUrl = buildKiwifyCheckoutUrl(sessionId, productUrl);
     console.log('[KIWIFY] Redirecionando para:', checkoutUrl);
-    window.location.href = checkoutUrl;
+    
+    // Usar window.location.replace para evitar que o usuário volte
+    // ou window.open se quiser abrir em nova aba
+    if (window.location) {
+      window.location.href = checkoutUrl;
+    } else {
+      console.error('[KIWIFY] window.location não disponível');
+    }
   } catch (error) {
     console.error('[KIWIFY] Erro ao construir URL do checkout:', error);
     throw error;

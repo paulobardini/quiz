@@ -186,8 +186,14 @@ export default function PaywallPage() {
           </div>
 
           <button
-            onClick={handleCheckout}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('[PAYWALL] Botão clicado!');
+              handleCheckout();
+            }}
             className="page-button"
+            type="button"
           >
             Desbloquear Relatório
           </button>
