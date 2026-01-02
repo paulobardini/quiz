@@ -61,7 +61,49 @@ export async function GET(request: Request) {
     }
 
     if (!orders || orders.length === 0) {
-      console.log('[PAYMENT CHECK] Nenhum pedido encontrado');
+      console.log('[PAYMENT CHECK] Nenhum pedido encontrado no banco');
+      
+      // Se temos order_id, tentar buscar diretamente na API da Kiwify como fallback
+      if (orderId) {
+        console.log('[PAYMENT CHECK] Tentando buscar na API Kiwify como fallback...');
+        try {
+          const oauthToken = process.env.KIWIFY_OAUTH_TOKEN;
+          const accountId = process.env.KIWIFY_ACCOUNT_ID;
+
+          if (oauthToken && accountId) {
+            const kiwifyUrl = `https://public-api.kiwify.com/v1/sales/${orderId}`;
+            const kiwifyResponse = await fetch(kiwifyUrl, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${oauthToken}`,
+                'x-kiwify-account-id': accountId,
+                'Content-Type': 'application/json',
+              },
+              cache: 'no-store',
+            });
+
+            if (kiwifyResponse.ok) {
+              const sale = await kiwifyResponse.json();
+              console.log('[PAYMENT CHECK] Venda encontrada na API Kiwify:', sale);
+              
+              const status = sale.status?.toLowerCase() || '';
+              const isApproved = ['paid', 'approved', 'completed'].includes(status) || !!sale.approved_date;
+              
+              if (isApproved) {
+                return NextResponse.json({
+                  approved: true,
+                  pending: false,
+                  order_id: orderId,
+                  message: 'Pagamento aprovado com sucesso!',
+                });
+              }
+            }
+          }
+        } catch (apiError) {
+          console.error('[PAYMENT CHECK] Erro ao buscar na API Kiwify:', apiError);
+        }
+      }
+      
       return NextResponse.json({
         approved: false,
         pending: true,
