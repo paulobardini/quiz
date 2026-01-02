@@ -48,34 +48,48 @@ export function buildKiwifyCheckoutUrl(
   sessionId: string | null,
   productUrl: string
 ): string {
+  console.log('[KIWIFY] Construindo URL do checkout...');
+  console.log('[KIWIFY] SessionId:', sessionId);
+  console.log('[KIWIFY] ProductUrl:', productUrl);
+  
+  if (!productUrl || productUrl.trim() === '') {
+    throw new Error('ProductUrl não pode ser vazio');
+  }
+
   const trackingParams = getTrackingParams();
+  console.log('[KIWIFY] Parâmetros de tracking da URL:', trackingParams);
   
   // s1 sempre será o quiz_session_id
   if (sessionId) {
     trackingParams.s1 = sessionId;
+    console.log('[KIWIFY] s1 definido como sessionId:', sessionId);
   }
+
+  let finalUrl: string;
 
   // Se productUrl já é uma URL completa, usar diretamente
   if (productUrl.startsWith('http://') || productUrl.startsWith('https://')) {
-    const url = new URL(productUrl);
-    Object.entries(trackingParams).forEach(([key, value]) => {
-      url.searchParams.set(key, value);
-    });
-    return url.toString();
+    console.log('[KIWIFY] URL completa detectada, usando diretamente');
+    finalUrl = productUrl;
+  } else {
+    // Se é um slug, construir URL do checkout Kiwify
+    // Suporta tanto kiwify.me quanto pay.kiwify.com.br
+    const baseUrl = productUrl.startsWith('/')
+      ? `https://pay.kiwify.com.br${productUrl}`
+      : `https://pay.kiwify.com.br/${productUrl}`;
+    console.log('[KIWIFY] Construindo URL a partir do slug:', baseUrl);
+    finalUrl = baseUrl;
   }
 
-  // Se é um slug, construir URL do checkout Kiwify
-  // Suporta tanto kiwify.me quanto pay.kiwify.com.br
-  const baseUrl = productUrl.startsWith('/')
-    ? `https://pay.kiwify.com.br${productUrl}`
-    : `https://pay.kiwify.com.br/${productUrl}`;
-
-  const url = new URL(baseUrl);
+  const url = new URL(finalUrl);
   Object.entries(trackingParams).forEach(([key, value]) => {
     url.searchParams.set(key, value);
   });
 
-  return url.toString();
+  const finalUrlString = url.toString();
+  console.log('[KIWIFY] URL final do checkout:', finalUrlString);
+  
+  return finalUrlString;
 }
 
 /**
@@ -87,7 +101,13 @@ export function redirectToKiwifyCheckout(
   sessionId: string | null,
   productUrl: string
 ): void {
-  const checkoutUrl = buildKiwifyCheckoutUrl(sessionId, productUrl);
-  window.location.href = checkoutUrl;
+  try {
+    const checkoutUrl = buildKiwifyCheckoutUrl(sessionId, productUrl);
+    console.log('[KIWIFY] Redirecionando para:', checkoutUrl);
+    window.location.href = checkoutUrl;
+  } catch (error) {
+    console.error('[KIWIFY] Erro ao construir URL do checkout:', error);
+    throw error;
+  }
 }
 

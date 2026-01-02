@@ -14,8 +14,14 @@ const LP_BG_URL =
   process.env.NEXT_PUBLIC_LP_BG_URL ||
   "https://i.ibb.co/yn3dKqtQ/pexels-njeromin-28203471.jpg";
 
+// Variável de ambiente precisa estar disponível no build
 const KIWIFY_PRODUCT_URL =
   process.env.NEXT_PUBLIC_KIWIFY_PRODUCT_URL || "";
+
+// Log para debug (será removido em produção se necessário)
+if (typeof window !== 'undefined') {
+  console.log('[PAYWALL] KIWIFY_PRODUCT_URL carregada:', KIWIFY_PRODUCT_URL ? 'SIM' : 'NÃO');
+}
 
 export default function PaywallPage() {
   const router = useRouter();
@@ -46,15 +52,24 @@ export default function PaywallPage() {
   const handleCheckout = () => {
     const sessionId = getSessionId();
     
-    if (!KIWIFY_PRODUCT_URL) {
-      console.error("KIWIFY_PRODUCT_URL não configurado");
-      // Fallback: redirecionar para report se não tiver URL do produto
-      router.push("/report");
+    console.log('[PAYWALL] Iniciando checkout...');
+    console.log('[PAYWALL] SessionId:', sessionId);
+    console.log('[PAYWALL] KIWIFY_PRODUCT_URL:', KIWIFY_PRODUCT_URL);
+    
+    if (!KIWIFY_PRODUCT_URL || KIWIFY_PRODUCT_URL.trim() === '') {
+      console.error("[PAYWALL] KIWIFY_PRODUCT_URL não configurado ou vazio");
+      alert("Erro: URL do checkout não configurada. Entre em contato com o suporte.");
       return;
     }
 
-    // Redireciona para o checkout da Kiwify com tracking
-    redirectToKiwifyCheckout(sessionId, KIWIFY_PRODUCT_URL);
+    try {
+      // Redireciona para o checkout da Kiwify com tracking
+      console.log('[PAYWALL] Redirecionando para checkout...');
+      redirectToKiwifyCheckout(sessionId, KIWIFY_PRODUCT_URL);
+    } catch (error) {
+      console.error("[PAYWALL] Erro ao redirecionar para checkout:", error);
+      alert("Erro ao redirecionar para o checkout. Tente novamente.");
+    }
   };
 
   return (
