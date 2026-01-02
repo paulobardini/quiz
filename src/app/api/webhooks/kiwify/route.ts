@@ -6,17 +6,53 @@ export const runtime = 'nodejs';
 
 interface KiwifyWebhookPayload {
   event?: string;
+  webhook_event_type?: string;
   order_id?: string;
   id?: string;
+  order_status?: string;
   status?: string;
+  Product?: {
+    product_id?: string;
+    product_name?: string;
+  };
   product?: {
     id?: string;
     name?: string;
+    product_id?: string;
+    product_name?: string;
+  };
+  Customer?: {
+    email?: string;
+    full_name?: string;
+    first_name?: string;
   };
   customer?: {
     email?: string;
   };
-  approved_date?: string;
+  approved_date?: string | null;
+  TrackingParameters?: {
+    s1?: string | null;
+    s2?: string | null;
+    s3?: string | null;
+    sck?: string | null;
+    src?: string | null;
+    utm_source?: string | null;
+    utm_medium?: string | null;
+    utm_campaign?: string | null;
+    utm_term?: string | null;
+    utm_content?: string | null;
+    afid?: string | null;
+  };
+  Commissions?: {
+    commissioned_stores?: Array<{
+      id?: string;
+      type?: string;
+      email?: string;
+      value?: string;
+      custom_name?: string;
+      affiliate_id?: string;
+    }>;
+  };
   affiliate_commission?: {
     name?: string;
     email?: string;
@@ -114,7 +150,7 @@ function extractOrderId(payload: KiwifyWebhookPayload): string | null {
 }
 
 function extractEvent(payload: KiwifyWebhookPayload): string {
-  return payload.event || 'unknown';
+  return payload.webhook_event_type || payload.event || 'unknown';
 }
 
 function validateToken(request: Request): boolean {
@@ -301,31 +337,41 @@ export async function POST(request: Request) {
       // Tentar extrair dados do payload (pode vir em payload ou payload.data)
       const sourceData = payload.data || payload;
       
-      if (sourceData.status) {
+      // Status: order_status ou status
+      if (sourceData.order_status) {
+        orderData.status = sourceData.order_status;
+        console.log('[KIWIFY WEBHOOK] Status extraído do payload (order_status):', sourceData.order_status);
+      } else if (sourceData.status) {
         orderData.status = sourceData.status;
         console.log('[KIWIFY WEBHOOK] Status extraído do payload:', sourceData.status);
       }
       
-      if (sourceData.product) {
-        orderData.product_id = sourceData.product.id || null;
-        orderData.product_name = sourceData.product.name || null;
-        console.log('[KIWIFY WEBHOOK] Produto extraído do payload:', sourceData.product);
+      // Product: pode vir como Product (maiúsculo) ou product (minúsculo)
+      const product = sourceData.Product || sourceData.product;
+      if (product) {
+        orderData.product_id = product.product_id || product.id || null;
+        orderData.product_name = product.product_name || product.name || null;
+        console.log('[KIWIFY WEBHOOK] Produto extraído do payload:', product);
       }
       
-      if (sourceData.customer) {
-        orderData.customer_email = sourceData.customer.email || null;
-        console.log('[KIWIFY WEBHOOK] Cliente extraído do payload:', sourceData.customer);
+      // Customer: pode vir como Customer (maiúsculo) ou customer (minúsculo)
+      const customer = sourceData.Customer || sourceData.customer;
+      if (customer) {
+        orderData.customer_email = customer.email || null;
+        console.log('[KIWIFY WEBHOOK] Cliente extraído do payload:', customer);
       }
       
+      // Approved date
       if (sourceData.approved_date) {
         orderData.approved_date = parseApprovedDate(sourceData.approved_date);
         console.log('[KIWIFY WEBHOOK] Data aprovada extraída do payload:', sourceData.approved_date);
       }
 
-      // Tentar extrair tracking do payload
-      const tracking = payload.tracking || payload.data?.tracking || sourceData.tracking;
+      // Tracking: TrackingParameters (maiúsculo) ou tracking (minúsculo)
+      const tracking = payload.TrackingParameters || payload.tracking || payload.data?.TrackingParameters || payload.data?.tracking || sourceData.TrackingParameters || sourceData.tracking;
       if (tracking) {
         console.log('[KIWIFY WEBHOOK] Tracking encontrado no payload:', tracking);
+        // TrackingParameters pode ter valores null, então usar || null para converter null em null
         orderData.afid = tracking.afid || null;
         orderData.src = tracking.src || null;
         orderData.sck = tracking.sck || null;
@@ -348,13 +394,34 @@ export async function POST(request: Request) {
       }
 
       // Tentar extrair dados de afiliado do payload
-      const affiliate = payload.affiliate_commission || payload.affiliate || payload.data?.affiliate_commission || payload.data?.affiliate || sourceData.affiliate_commission || sourceData.affiliate;
-      if (affiliate) {
-        console.log('[KIWIFY WEBHOOK] Dados de afiliado encontrados no payload:', affiliate);
-        orderData.affiliate_name = affiliate.name || null;
-        orderData.affiliate_email = affiliate.email || null;
-        orderData.affiliate_document = affiliate.document || null;
-        orderData.affiliate_amount = affiliate.amount || null;
+      // Pode vir em Commissions.commissioned_stores (array) onde type === "affiliate"
+      const commissions = payload.Commissions || payload.data?.Commissions || sourceData.Commissions;
+      if (commissions?.commissioned_stores) {
+        const affiliateStore = commissions.commissioned_stores.find((store: any) => store.type === 'affiliate');
+        if (affiliateStore) {
+          console.log('[KIWIFY WEBHOOK] Dados de afiliado encontrados em Commissions:', affiliateStore);
+          orderData.affiliate_name = affiliateStore.custom_name || null;
+          orderData.affiliate_email = affiliateStore.email || null;
+          orderData.affiliate_document = null; // Não vem no payload
+          orderData.affiliate_amount = affiliateStore.value ? parseFloat(affiliateStore.value) / 100 : null; // Valor vem em centavos
+          // afid pode vir como affiliate_id
+          if (!orderData.afid && affiliateStore.affiliate_id) {
+            orderData.afid = affiliateStore.affiliate_id;
+            console.log('[KIWIFY WEBHOOK] Afid extraído do affiliate_id:', affiliateStore.affiliate_id);
+          }
+        }
+      }
+      
+      // Fallback para estrutura antiga
+      if (!orderData.affiliate_name) {
+        const affiliate = payload.affiliate_commission || payload.affiliate || payload.data?.affiliate_commission || payload.data?.affiliate || sourceData.affiliate_commission || sourceData.affiliate;
+        if (affiliate) {
+          console.log('[KIWIFY WEBHOOK] Dados de afiliado encontrados no payload (estrutura antiga):', affiliate);
+          orderData.affiliate_name = affiliate.name || null;
+          orderData.affiliate_email = affiliate.email || null;
+          orderData.affiliate_document = affiliate.document || null;
+          orderData.affiliate_amount = affiliate.amount || null;
+        }
       }
     }
     
