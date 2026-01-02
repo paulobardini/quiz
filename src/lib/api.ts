@@ -39,9 +39,19 @@ async function fetchAPI<T>(
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { message: errorText };
+      }
+      
+      const error = new Error(
         `API Error: ${response.status} ${response.statusText} - ${errorText}`
-      );
+      ) as any;
+      error.status = response.status;
+      error.data = errorData;
+      throw error;
     }
 
     return response.json();

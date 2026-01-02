@@ -79,6 +79,17 @@ export default function ReportPage() {
         setReport(data);
       } catch (error) {
         console.error("Erro ao carregar relatório:", error);
+        
+        // Se o erro for 402 (Payment Required), redirecionar para paywall
+        const errorStatus = error?.status;
+        const errorData = error?.data;
+        if (errorStatus === 402 || errorData?.requiresPayment) {
+          console.log('[REPORT] Pagamento não aprovado, redirecionando para paywall');
+          router.push('/paywall');
+          return;
+        }
+        
+        // Para outros erros, redirecionar para home
         incrementHomeRedirectCount();
         clearQuizStorage();
         router.push("/");
