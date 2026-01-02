@@ -278,8 +278,42 @@ export async function GET(
       }
     }
 
+    // ÚLTIMO RECURSO: Se ainda não encontrou, buscar qualquer perfil do domínio primário
     if (!dominantDomain || !dominantProfile) {
-      console.error('[REPORT] ERRO: Não foi possível encontrar perfil dominante', {
+      console.warn('[REPORT] ÚLTIMO RECURSO: Tentando buscar qualquer perfil disponível');
+      const scores = result.scores_json || result.scores || {};
+      const domainKeys = ['clareza', 'constancia', 'emocional', 'prosperidade'];
+      
+      // Tentar cada domínio até encontrar um
+      for (const domainKey of domainKeys) {
+        const { data: domain } = await supabase
+          .from('quiz_domains')
+          .select('id, key, name, short_label')
+          .eq('key', domainKey)
+          .maybeSingle();
+        
+        if (domain) {
+          // Buscar qualquer perfil desse domínio
+          const { data: anyProfile } = await supabase
+            .from('quiz_profiles')
+            .select('id, key, name')
+            .eq('domain_id', domain.id)
+            .limit(1)
+            .maybeSingle();
+          
+          if (anyProfile) {
+            dominantDomain = domain;
+            dominantProfile = anyProfile;
+            console.log('[REPORT] Perfil encontrado no último recurso:', domain.key, anyProfile.key);
+            break;
+          }
+        }
+      }
+    }
+
+    // Se AINDA não encontrou, criar perfil fallback
+    if (!dominantDomain || !dominantProfile) {
+      console.error('[REPORT] ERRO CRÍTICO: Criando perfil fallback', {
         hasDomain: !!dominantDomain,
         hasProfile: !!dominantProfile,
         resultData: {
@@ -289,10 +323,22 @@ export async function GET(
           scores: result.scores_json || result.scores,
         },
       });
-      return NextResponse.json(
-        { error: 'Dados de perfil dominante não encontrados' },
-        { status: 404 }
-      );
+      
+      // Criar domínio e perfil fallback para garantir que sempre retorne algo
+      dominantDomain = {
+        id: 'fallback',
+        key: result.primary_profile || 'clareza',
+        name: result.primary_profile ? result.primary_profile.charAt(0).toUpperCase() + result.primary_profile.slice(1) : 'Clareza',
+        short_label: result.primary_profile || 'Clareza',
+      };
+      
+      dominantProfile = {
+        id: 'fallback',
+        key: 'default',
+        name: 'Padrão',
+      };
+      
+      console.log('[REPORT] Usando perfil fallback:', dominantDomain.key, dominantProfile.key);
     }
 
     console.log('[REPORT] Perfil dominante encontrado:', {
@@ -352,6 +398,16 @@ export async function GET(
           }
         }
       }
+    }
+
+    // GARANTIR que sempre tenha conteúdo, mesmo que genérico - NUNCA retornar null
+    if (!paidDeepdive) {
+      paidDeepdive = 'Este relatório aprofunda os padrões observados nas suas respostas. Continue explorando para entender melhor seus padrões de decisão.';
+      console.warn('[REPORT] Usando conteúdo genérico para deepdive');
+    }
+    if (!paidPlan) {
+      paidPlan = 'Reflita sobre as decisões do seu dia a dia e observe os padrões que se repetem. Pequenos ajustes conscientes podem gerar grandes mudanças.';
+      console.warn('[REPORT] Usando conteúdo genérico para plan');
     }
 
     // Buscar domínios com scores, níveis e textos interpretativos
