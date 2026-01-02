@@ -49,11 +49,24 @@ O servidor estará disponível em [http://localhost:3000](http://localhost:3000)
 Crie um arquivo `.env.local` na raiz do projeto (veja `.env.example`):
 
 ```env
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# Frontend
 NEXT_PUBLIC_LP_BG_URL=https://i.ibb.co/yn3dKqtQ/pexels-njeromin-28203471.jpg
 NEXT_PUBLIC_API_BASE_URL=  # Deixe vazio para desenvolvimento local
+
+# Kiwify - Checkout (Frontend)
+NEXT_PUBLIC_KIWIFY_PRODUCT_URL=https://pay.kiwify.com.br/Tgsa1ZA  # URL completa ou slug do checkout
+
+# Kiwify - Webhook (Backend)
+KIWIFY_WEBHOOK_TOKEN=seu_token_do_webhook_kiwify
+KIWIFY_OAUTH_TOKEN=seu_client_secret_da_api_key  # client_secret da API Key
+KIWIFY_ACCOUNT_ID=seu_account_id  # account_id da API Key
 ```
+
+📖 **Guia completo de configuração Kiwify**: Veja [KIWIFY_SETUP.md](./KIWIFY_SETUP.md)
 
 ## Build
 

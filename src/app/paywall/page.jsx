@@ -8,10 +8,14 @@ import {
   checkAndClearStorageIfNeeded,
   incrementHomeRedirectCount,
 } from "@/lib/storage";
+import { redirectToKiwifyCheckout } from "@/lib/kiwify";
 
 const LP_BG_URL =
   process.env.NEXT_PUBLIC_LP_BG_URL ||
   "https://i.ibb.co/yn3dKqtQ/pexels-njeromin-28203471.jpg";
+
+const KIWIFY_PRODUCT_URL =
+  process.env.NEXT_PUBLIC_KIWIFY_PRODUCT_URL || "";
 
 export default function PaywallPage() {
   const router = useRouter();
@@ -39,8 +43,18 @@ export default function PaywallPage() {
     }
   }, [router]);
 
-  const handleUnlock = () => {
-    router.push("/report");
+  const handleCheckout = () => {
+    const sessionId = getSessionId();
+    
+    if (!KIWIFY_PRODUCT_URL) {
+      console.error("KIWIFY_PRODUCT_URL não configurado");
+      // Fallback: redirecionar para report se não tiver URL do produto
+      router.push("/report");
+      return;
+    }
+
+    // Redireciona para o checkout da Kiwify com tracking
+    redirectToKiwifyCheckout(sessionId, KIWIFY_PRODUCT_URL);
   };
 
   return (
@@ -157,7 +171,7 @@ export default function PaywallPage() {
           </div>
 
           <button
-            onClick={handleUnlock}
+            onClick={handleCheckout}
             className="page-button"
           >
             Desbloquear Relatório
