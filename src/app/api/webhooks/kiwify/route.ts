@@ -8,9 +8,38 @@ interface KiwifyWebhookPayload {
   event?: string;
   order_id?: string;
   id?: string;
+  status?: string;
+  product?: {
+    id?: string;
+    name?: string;
+  };
+  customer?: {
+    email?: string;
+  };
+  approved_date?: string;
+  affiliate_commission?: {
+    name?: string;
+    email?: string;
+    document?: string;
+    amount?: number;
+  };
+  affiliate?: {
+    name?: string;
+    email?: string;
+    document?: string;
+    amount?: number;
+  };
   data?: {
     order_id?: string;
     id?: string;
+    status?: string;
+    product?: {
+      id?: string;
+      name?: string;
+    };
+    customer?: {
+      email?: string;
+    };
     tracking?: {
       afid?: string;
       src?: string;
@@ -117,32 +146,41 @@ async function fetchKiwifySale(orderId: string): Promise<KiwifySale | null> {
 
   if (!oauthToken || !accountId) {
     console.error('[KIWIFY WEBHOOK] KIWIFY_OAUTH_TOKEN ou KIWIFY_ACCOUNT_ID não configurados');
+    console.error('[KIWIFY WEBHOOK] KIWIFY_OAUTH_TOKEN existe?', !!oauthToken);
+    console.error('[KIWIFY WEBHOOK] KIWIFY_ACCOUNT_ID existe?', !!accountId);
     return null;
   }
 
+  const url = `https://public-api.kiwify.com/v1/sales/${orderId}`;
+  console.log('[KIWIFY WEBHOOK] Fazendo requisição para:', url);
+
   try {
-    const response = await fetch(
-      `https://public-api.kiwify.com/v1/sales/${orderId}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${oauthToken}`,
-          'x-kiwify-account-id': accountId,
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-store',
-      }
-    );
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${oauthToken}`,
+        'x-kiwify-account-id': accountId,
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    console.log('[KIWIFY WEBHOOK] Response status:', response.status, response.statusText);
 
     if (!response.ok) {
-      console.error(`[KIWIFY WEBHOOK] Erro ao buscar venda ${orderId}: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error(`[KIWIFY WEBHOOK] Erro ao buscar venda ${orderId}: ${response.status} ${response.statusText}`, errorText);
       return null;
     }
 
     const sale = await response.json() as KiwifySale;
+    console.log('[KIWIFY WEBHOOK] Venda retornada da API:', JSON.stringify(sale, null, 2));
     return sale;
   } catch (error) {
     console.error(`[KIWIFY WEBHOOK] Erro ao buscar venda ${orderId}:`, error);
+    if (error instanceof Error) {
+      console.error('[KIWIFY WEBHOOK] Erro detalhado:', error.message, error.stack);
+    }
     return null;
   }
 }
@@ -173,13 +211,17 @@ export async function POST(request: Request) {
 
     // Ler payload
     const payload: KiwifyWebhookPayload = await request.json();
+    console.log('[KIWIFY WEBHOOK] Payload recebido:', JSON.stringify(payload, null, 2));
+    
     const event = extractEvent(payload);
     const orderId = extractOrderId(payload);
+    
+    console.log('[KIWIFY WEBHOOK] Event:', event, 'OrderId:', orderId);
 
     const supabase = supabaseServer();
 
     // Inserir log
-    const { error: logError } = await supabase
+    const { data: logData, error: logError } = await supabase
       .from('kiwify_webhook_logs')
       .insert({
         event,
@@ -187,10 +229,14 @@ export async function POST(request: Request) {
         payload,
         received_at: new Date().toISOString(),
         error: orderId ? null : 'missing_order_id',
-      });
+      })
+      .select()
+      .single();
 
     if (logError) {
       console.error('[KIWIFY WEBHOOK] Erro ao inserir log:', logError);
+    } else {
+      console.log('[KIWIFY WEBHOOK] Log inserido com sucesso, ID:', logData?.id);
     }
 
     // Se não tem order_id, retornar OK mas não processar
@@ -200,7 +246,14 @@ export async function POST(request: Request) {
     }
 
     // Buscar venda oficial na Kiwify
+    console.log('[KIWIFY WEBHOOK] Buscando venda na API Kiwify para orderId:', orderId);
     const sale = await fetchKiwifySale(orderId);
+    
+    if (sale) {
+      console.log('[KIWIFY WEBHOOK] Venda encontrada na API:', JSON.stringify(sale, null, 2));
+    } else {
+      console.warn('[KIWIFY WEBHOOK] Venda não encontrada na API ou erro na busca');
+    }
 
     // Preparar dados para UPSERT
     const orderData: any = {
@@ -242,11 +295,37 @@ export async function POST(request: Request) {
       }
     } else {
       // Se não conseguiu buscar venda, usar dados do payload como fallback
+      console.log('[KIWIFY WEBHOOK] Usando dados do payload como fallback');
       orderData.raw_sale = null;
 
+      // Tentar extrair dados do payload (pode vir em payload ou payload.data)
+      const sourceData = payload.data || payload;
+      
+      if (sourceData.status) {
+        orderData.status = sourceData.status;
+        console.log('[KIWIFY WEBHOOK] Status extraído do payload:', sourceData.status);
+      }
+      
+      if (sourceData.product) {
+        orderData.product_id = sourceData.product.id || null;
+        orderData.product_name = sourceData.product.name || null;
+        console.log('[KIWIFY WEBHOOK] Produto extraído do payload:', sourceData.product);
+      }
+      
+      if (sourceData.customer) {
+        orderData.customer_email = sourceData.customer.email || null;
+        console.log('[KIWIFY WEBHOOK] Cliente extraído do payload:', sourceData.customer);
+      }
+      
+      if (sourceData.approved_date) {
+        orderData.approved_date = parseApprovedDate(sourceData.approved_date);
+        console.log('[KIWIFY WEBHOOK] Data aprovada extraída do payload:', sourceData.approved_date);
+      }
+
       // Tentar extrair tracking do payload
-      const tracking = payload.tracking || payload.data?.tracking;
+      const tracking = payload.tracking || payload.data?.tracking || sourceData.tracking;
       if (tracking) {
+        console.log('[KIWIFY WEBHOOK] Tracking encontrado no payload:', tracking);
         orderData.afid = tracking.afid || null;
         orderData.src = tracking.src || null;
         orderData.sck = tracking.sck || null;
@@ -262,20 +341,39 @@ export async function POST(request: Request) {
 
       // Tentar extrair afid de outros lugares no payload
       if (!orderData.afid) {
-        orderData.afid = payload.afid || payload.data?.afid || null;
+        orderData.afid = payload.afid || payload.data?.afid || sourceData.afid || null;
+        if (orderData.afid) {
+          console.log('[KIWIFY WEBHOOK] Afid extraído de outro lugar:', orderData.afid);
+        }
+      }
+
+      // Tentar extrair dados de afiliado do payload
+      const affiliate = payload.affiliate_commission || payload.affiliate || payload.data?.affiliate_commission || payload.data?.affiliate || sourceData.affiliate_commission || sourceData.affiliate;
+      if (affiliate) {
+        console.log('[KIWIFY WEBHOOK] Dados de afiliado encontrados no payload:', affiliate);
+        orderData.affiliate_name = affiliate.name || null;
+        orderData.affiliate_email = affiliate.email || null;
+        orderData.affiliate_document = affiliate.document || null;
+        orderData.affiliate_amount = affiliate.amount || null;
       }
     }
+    
+    console.log('[KIWIFY WEBHOOK] Dados para UPSERT:', JSON.stringify(orderData, null, 2));
 
     // UPSERT na tabela de pedidos
-    const { error: upsertError } = await supabase
+    const { data: upsertData, error: upsertError } = await supabase
       .from('kiwify_orders')
       .upsert(orderData, {
         onConflict: 'order_id',
-      });
+      })
+      .select()
+      .single();
 
     if (upsertError) {
       console.error('[KIWIFY WEBHOOK] Erro ao fazer UPSERT:', upsertError);
       // Ainda assim retornar 200 para não quebrar o webhook
+    } else {
+      console.log('[KIWIFY WEBHOOK] UPSERT realizado com sucesso:', upsertData);
     }
 
     const duration = Date.now() - startTime;
