@@ -6,6 +6,14 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '2mb',
     },
   },
+  // Otimizações para produção
+  compress: true,
+  poweredByHeader: false,
+  // Configuração de imagens (se necessário no futuro)
+  images: {
+    domains: ['i.ibb.co'],
+    formats: ['image/avif', 'image/webp'],
+  },
 };
 
 export default nextConfig;

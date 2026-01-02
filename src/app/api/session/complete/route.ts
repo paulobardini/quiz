@@ -32,8 +32,22 @@ export async function POST(req: Request) {
     }
 
     if (session.status === 'completed') {
+      const { data: existingResult, error: existingResultError } = await supabase
+        .from('quiz_session_results')
+        .select('id')
+        .eq('session_id', sessionId)
+        .single();
+
+      if (existingResultError || !existingResult) {
+        return NextResponse.json(
+          { error: 'Resultado não encontrado para sessão completa' },
+          { status: 404 }
+        );
+      }
+
       return NextResponse.json({
         ok: true,
+        resultId: existingResult.id,
       });
     }
 
@@ -146,6 +160,19 @@ export async function POST(req: Request) {
       );
     }
 
+    const { data: resultData, error: resultFetchError } = await supabase
+      .from('quiz_session_results')
+      .select('id')
+      .eq('session_id', sessionId)
+      .single();
+
+    if (resultFetchError || !resultData) {
+      return NextResponse.json(
+        { error: 'Erro ao buscar resultado criado' },
+        { status: 500 }
+      );
+    }
+
     const { error: updateError } = await supabase
       .from('quiz_sessions')
       .update({
@@ -163,6 +190,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       ok: true,
+      resultId: resultData.id,
     });
   } catch (error) {
     if (error instanceof Error) {
