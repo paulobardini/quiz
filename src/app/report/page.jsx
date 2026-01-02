@@ -467,109 +467,63 @@ function ReportContent() {
             {/* CAPA - ZONA 1: TÍTULO PRINCIPAL */}
             <section style={{
               width: '100%',
-              paddingTop: '80px',
+              paddingTop: '48px',
               paddingBottom: '0',
               marginBottom: '0',
-              textAlign: 'left'
+              textAlign: 'center'
             }} className="hero-section-desktop">
               
               <h1 style={{ 
-                fontSize: 'clamp(36px, 5vw, 52px)', 
+                fontSize: '38px', 
                 fontWeight: 700, 
-                marginBottom: '32px',
+                marginBottom: '24px',
                 color: '#F5F5F5',
                 lineHeight: 1.15,
                 letterSpacing: '-0.03em',
-                maxWidth: '680px'
+                maxWidth: '680px',
+                margin: '0 auto 24px auto'
               }}>
                 Leitura completa do seu padrão de decisão
               </h1>
               
               {/* ZONA 2: SUBTÍTULO DE CONTEXTO */}
               <div style={{
-                marginBottom: '40px',
-                maxWidth: '600px'
+                marginBottom: '32px',
+                maxWidth: '600px',
+                margin: '0 auto 32px auto'
               }}>
                 <p style={{
-                  fontSize: 'clamp(17px, 2.2vw, 20px)',
+                  fontSize: '16px',
                   opacity: 0.75,
                   marginBottom: '12px',
                   color: '#D0D0D0',
                   lineHeight: 1.65,
-                  fontWeight: 300
+                  fontWeight: 300,
+                  textAlign: 'center'
                 }}>
                   Leitura completa para entender seu padrão e ajustar decisões com método.
                 </p>
                 <p style={{
-                  fontSize: 'clamp(17px, 2.2vw, 20px)',
+                  fontSize: '16px',
                   opacity: 0.75,
                   marginBottom: '0',
                   color: '#D0D0D0',
                   lineHeight: 1.65,
-                  fontWeight: 300
+                  fontWeight: 300,
+                  textAlign: 'center'
                 }}>
                   Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
                 </p>
               </div>
 
-              {/* Divisor leve */}
-              <div style={{
-                height: '1px',
-                backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                marginTop: '32px',
-                marginBottom: '32px',
-                maxWidth: '600px'
-              }} />
-
-              {/* ZONA 3: CARD DE VALOR E PERSONALIZAÇÃO */}
-              {(() => {
-                const profileName = report.profileName || extractProfileNameFromFirstParagraph(sortedBlocks);
-                if (profileName) {
-                  return (
-                    <div style={{
-                      marginTop: '0',
-                      marginBottom: '48px',
-                      padding: '24px 28px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: '6px',
-                      maxWidth: '400px',
-                      boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)'
-                    }}>
-                      <div style={{
-                        fontSize: '11px',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.12em',
-                        opacity: 0.65,
-                        color: '#BDBDBD',
-                        fontWeight: 400,
-                        marginBottom: '10px'
-                      }}>
-                        SEU PADRÃO DOMINANTE
-                      </div>
-                      <div style={{
-                        fontSize: 'clamp(24px, 3.5vw, 32px)',
-                        fontWeight: 700,
-                        marginTop: '4px',
-                        color: '#F5F5F5',
-                        letterSpacing: '-0.02em',
-                        lineHeight: 1.2
-                      }}>
-                        {String(profileName)}
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              })()}
-
               {/* Divisor leve antes do conteúdo */}
               <div style={{
                 height: '1px',
                 backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                marginTop: '40px',
+                marginTop: '32px',
                 marginBottom: '48px',
-                maxWidth: '680px'
+                maxWidth: '680px',
+                margin: '32px auto 48px auto'
               }} />
             </section>
 
@@ -870,101 +824,54 @@ function ReportContent() {
             {/* CAPA Mobile - ZONA 1: TÍTULO PRINCIPAL */}
             <section style={{
               width: '100%',
-              paddingTop: '56px',
+              paddingTop: '40px',
               paddingBottom: '0',
               marginBottom: '0',
-              textAlign: 'left'
+              textAlign: 'center'
             }} className="hero-section-mobile">
               
               <h1 style={{ 
-                fontSize: 'clamp(32px, 6vw, 44px)', 
+                fontSize: '32px', 
                 fontWeight: 700, 
-                marginBottom: '28px',
+                marginBottom: '24px',
                 color: '#F5F5F5',
                 lineHeight: 1.15,
                 letterSpacing: '-0.03em',
-                maxWidth: '100%'
+                maxWidth: '100%',
+                margin: '0 auto 24px auto'
               }}>
                 Leitura completa do seu padrão de decisão
               </h1>
               
               {/* ZONA 2: SUBTÍTULO DE CONTEXTO */}
               <div style={{
-                marginBottom: '36px',
-                maxWidth: '100%'
+                marginBottom: '32px',
+                maxWidth: '100%',
+                margin: '0 auto 32px auto'
               }}>
                 <p style={{
-                  fontSize: 'clamp(16px, 2.5vw, 19px)',
+                  fontSize: '14px',
                   opacity: 0.75,
                   marginBottom: '12px',
                   color: '#D0D0D0',
                   lineHeight: 1.65,
-                  fontWeight: 300
+                  fontWeight: 300,
+                  textAlign: 'center'
                 }}>
                   Leitura completa para entender seu padrão e ajustar decisões com método.
                 </p>
                 <p style={{
-                  fontSize: 'clamp(16px, 2.5vw, 19px)',
+                  fontSize: '14px',
                   opacity: 0.75,
                   marginBottom: '0',
                   color: '#D0D0D0',
                   lineHeight: 1.65,
-                  fontWeight: 300
+                  fontWeight: 300,
+                  textAlign: 'center'
                 }}>
                   Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
                 </p>
               </div>
-
-              {/* Divisor leve */}
-              <div style={{
-                height: '1px',
-                backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                marginTop: '28px',
-                marginBottom: '28px',
-                maxWidth: '100%'
-              }} />
-
-              {/* ZONA 3: CARD DE VALOR E PERSONALIZAÇÃO */}
-              {(() => {
-                const profileName = report.profileName || extractProfileNameFromFirstParagraph(sortedBlocks);
-                if (profileName) {
-                  return (
-                    <div style={{
-                      marginTop: '0',
-                      marginBottom: '40px',
-                      padding: '20px 24px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: '6px',
-                      maxWidth: '100%',
-                      boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)'
-                    }}>
-                      <div style={{
-                        fontSize: '11px',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.12em',
-                        opacity: 0.65,
-                        color: '#BDBDBD',
-                        fontWeight: 400,
-                        marginBottom: '10px'
-                      }}>
-                        SEU PADRÃO DOMINANTE
-                      </div>
-                      <div style={{
-                        fontSize: 'clamp(22px, 4vw, 28px)',
-                        fontWeight: 700,
-                        marginTop: '4px',
-                        color: '#F5F5F5',
-                        letterSpacing: '-0.02em',
-                        lineHeight: 1.2
-                      }}>
-                        {String(profileName)}
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              })()}
 
               {/* Divisor leve antes do conteúdo */}
               <div style={{
@@ -972,7 +879,8 @@ function ReportContent() {
                 backgroundColor: 'rgba(255, 255, 255, 0.06)',
                 marginTop: '32px',
                 marginBottom: '40px',
-                maxWidth: '100%'
+                maxWidth: '100%',
+                margin: '32px auto 40px auto'
               }} />
             </section>
 
@@ -981,48 +889,53 @@ function ReportContent() {
               display: 'block'
             }} className="content-layout-mobile">
               
-              {/* Índice Mobile - Acordeão discreto */}
+              {/* Índice Mobile - Botão com Dropdown */}
               <div style={{
                 display: 'block',
-                marginBottom: '32px'
+                marginBottom: '32px',
+                position: 'relative'
               }} className="table-of-contents-mobile">
                 <button
                   onClick={() => setIsTableOfContentsOpen(!isTableOfContentsOpen)}
                   style={{
                     width: '100%',
-                    padding: '8px 0',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    color: '#BDBDBD',
-                    fontSize: '13px',
-                    fontWeight: 300,
+                    padding: '14px 20px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '16px',
+                    color: '#EDEDED',
+                    fontSize: '14px',
+                    fontWeight: 400,
                     cursor: 'pointer',
                     textAlign: 'left',
-                    opacity: 0.6,
-                    transition: 'opacity 0.2s',
+                    transition: 'all 0.2s ease',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = '0.8';
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = '0.6';
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                   }}
                 >
                   <span>Ver índice</span>
-                  <span style={{ fontSize: '10px', opacity: 0.5, marginLeft: '8px' }}>
+                  <span style={{ fontSize: '12px', opacity: 0.7, marginLeft: '12px' }}>
                     {isTableOfContentsOpen ? '▼' : '▶'}
                   </span>
                 </button>
                 
                 {isTableOfContentsOpen && (
                   <nav style={{
-                    marginTop: '16px',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    padding: '0'
+                    marginTop: '12px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '16px',
+                    padding: '12px 20px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
                   }}>
                     {sortedBlocks.map((block, idx) => (
                       <a
@@ -1036,12 +949,19 @@ function ReportContent() {
                           padding: '10px 0',
                           fontSize: '14px',
                           color: '#EDEDED',
-                          opacity: 0.72,
+                          opacity: 0.75,
                           cursor: 'pointer',
                           textDecoration: 'none',
-                          borderBottom: 'none',
+                          borderBottom: idx < sortedBlocks.length - 1 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none',
                           fontWeight: 300,
-                          lineHeight: 1.5
+                          lineHeight: 1.5,
+                          transition: 'opacity 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.opacity = '1';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.opacity = '0.75';
                         }}
                       >
                         {removeBlockPrefix(block.title || '')}
