@@ -305,7 +305,8 @@ function ReportContent() {
     });
     
     // Converte quebras de linha em <br> para HTML
-    result = result.replace(/\n/g, '<br />');
+    // Garantir que o texto dos dias tenha o mesmo tamanho do parágrafo (herda do elemento pai)
+    result = result.replace(/\n/g, '<br style="font-size: inherit;" />');
     
     return result;
   };
