@@ -11,6 +11,21 @@ interface KiwifyWebhookPayload {
   data?: {
     order_id?: string;
     id?: string;
+    tracking?: {
+      afid?: string;
+      src?: string;
+      sck?: string;
+      utm_source?: string;
+      utm_medium?: string;
+      utm_campaign?: string;
+      utm_term?: string;
+      utm_content?: string;
+      s1?: string;
+      s2?: string;
+      s3?: string;
+    };
+    afid?: string;
+    [key: string]: any;
   };
   tracking?: {
     afid?: string;
@@ -25,6 +40,7 @@ interface KiwifyWebhookPayload {
     s2?: string;
     s3?: string;
   };
+  afid?: string;
   [key: string]: any;
 }
 
