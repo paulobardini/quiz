@@ -180,6 +180,96 @@ function ReportContent() {
     return null;
   };
 
+  const highlightKeyPhrases = (text) => {
+    if (!text) return text;
+    const textStr = String(text);
+    
+    // Frases-chave obrigatórias
+    const keyPhrases = [
+      'Aqui, o problema não é você. É o processo.',
+      'O ajuste aqui não é decidir melhor. É encerrar decisões.',
+      'Consciência não muda tudo de uma vez.',
+      'aqui, o problema não é você. É o processo.',
+      'o ajuste aqui não é decidir melhor. É encerrar decisões.',
+      'consciência não muda tudo de uma vez.'
+    ];
+
+    let result = textStr;
+    keyPhrases.forEach(phrase => {
+      const regex = new RegExp(`(${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      result = result.replace(regex, (match) => {
+        return `<span style="display: block; font-size: 1.15em; max-width: 85%; margin: 32px auto; line-height: 1.6; opacity: 0.95;">${match}</span>`;
+      });
+    });
+
+    return result;
+  };
+
+  const shouldHaveCard = (blockOrder) => {
+    // Bloco 4: card pesado
+    // Bloco 5: card mais claro
+    // Bloco 7: card de fechamento
+    return blockOrder === 4 || blockOrder === 5 || blockOrder === 7;
+  };
+
+  const getBlockVisualStyle = (blockOrder) => {
+    const baseStyle = {
+      marginBottom: '96px'
+    };
+
+    switch(blockOrder) {
+      case 1:
+        // Mais respiro e mais luz
+        return { ...baseStyle, paddingTop: '48px', paddingBottom: '48px', opacity: 0.95 };
+      case 3:
+        // Mais fechado e denso
+        return { ...baseStyle, paddingTop: '32px', paddingBottom: '32px', opacity: 0.88 };
+      case 4:
+        // Contraste mais forte
+        return { ...baseStyle, paddingTop: '40px', paddingBottom: '40px', opacity: 0.92 };
+      case 5:
+        // Clarear levemente
+        return { ...baseStyle, paddingTop: '40px', paddingBottom: '40px', opacity: 0.90 };
+      case 7:
+        // Sensação clara de encerramento
+        return { ...baseStyle, paddingTop: '48px', paddingBottom: '48px', opacity: 0.93 };
+      default:
+        return baseStyle;
+    }
+  };
+
+  const getCardStyle = (blockOrder) => {
+    if (blockOrder === 4) {
+      // Card pesado
+      return {
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRadius: '8px',
+        padding: '40px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
+      };
+    } else if (blockOrder === 5) {
+      // Card mais claro
+      return {
+        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '8px',
+        padding: '40px',
+        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2)'
+      };
+    } else if (blockOrder === 7) {
+      // Card de fechamento
+      return {
+        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+        border: '1px solid rgba(255, 255, 255, 0.09)',
+        borderRadius: '8px',
+        padding: '40px',
+        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.25)'
+      };
+    }
+    return null;
+  };
+
   if (isLoading) {
     return (
       <main className="page-root">
@@ -258,15 +348,34 @@ function ReportContent() {
     const profileName = report.profileName || extractProfileNameFromFirstParagraph(sortedBlocks);
 
     return (
-      <main className="page-root result-page" style={{ position: 'relative' }}>
-        <div
-          className="page-bg"
-          style={{ 
-            backgroundImage: `url(${LP_BG_URL})`,
-            filter: 'blur(2px)'
-          }}
-        />
-        <div className="page-overlay" />
+      <main className="page-root result-page" style={{ 
+        position: 'relative',
+        minHeight: '100vh',
+        backgroundColor: '#0F0F0F',
+        background: `
+          radial-gradient(circle at 20% 50%, rgba(18, 18, 18, 0.3) 0%, transparent 50%),
+          radial-gradient(circle at 80% 80%, rgba(14, 14, 14, 0.3) 0%, transparent 50%),
+          #0F0F0F
+        `,
+        backgroundSize: '100% 100%',
+        backgroundAttachment: 'fixed'
+      }}>
+        {/* Granulação sutil */}
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: `
+            repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0px, transparent 1px, transparent 2px, rgba(255, 255, 255, 0.015) 3px),
+            repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0px, transparent 1px, transparent 2px, rgba(255, 255, 255, 0.015) 3px)
+          `,
+          backgroundSize: '100px 100px',
+          pointerEvents: 'none',
+          zIndex: 1,
+          opacity: 0.4
+        }} />
         
         <div style={{ 
           maxWidth: '720px', 
@@ -275,16 +384,6 @@ function ReportContent() {
           position: 'relative',
           zIndex: 10
         }}>
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            borderRadius: '8px',
-            zIndex: 1
-          }} />
           
           <div 
             ref={reportContainerRef} 
@@ -297,29 +396,30 @@ function ReportContent() {
             {/* CAPA */}
             <section style={{
               width: '100%',
-              padding: '56px 0 40px 0',
-              background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.3) 100%)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: '24px',
-              marginBottom: '64px',
-              textAlign: 'center'
+              padding: '64px 0 48px 0',
+              marginBottom: '80px',
+              textAlign: 'center',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              paddingBottom: '48px'
             }}>
               <h1 style={{ 
-                fontSize: '42px', 
-                fontWeight: 700, 
-                marginBottom: '20px',
+                fontSize: '38px', 
+                fontWeight: 500, 
+                marginBottom: '24px',
                 color: '#E5E5E5',
-                lineHeight: 1.2
+                lineHeight: 1.3,
+                letterSpacing: '-0.5px'
               }}>
                 {String(report.title || '')}
               </h1>
               
               <p style={{
-                fontSize: '18px',
-                opacity: 0.88,
-                marginBottom: '24px',
+                fontSize: '17px',
+                opacity: 0.75,
+                marginBottom: '28px',
                 color: '#E5E5E5',
-                lineHeight: 1.6
+                lineHeight: 1.6,
+                fontWeight: 300
               }}>
                 Leitura completa para entender seu padrão e ajustar decisões com método.
               </p>
@@ -327,24 +427,26 @@ function ReportContent() {
               {profileName && (
                 <div style={{
                   display: 'inline-block',
-                  padding: '8px 16px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  borderRadius: '20px',
-                  marginBottom: '20px',
-                  fontSize: '14px',
-                  fontWeight: 500,
+                  padding: '6px 14px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  borderRadius: '4px',
+                  marginBottom: '24px',
+                  fontSize: '13px',
+                  fontWeight: 400,
                   color: '#E5E5E5',
-                  border: '1px solid rgba(255, 255, 255, 0.15)'
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  letterSpacing: '0.3px'
                 }}>
                   {String(profileName)}
                 </div>
               )}
 
               <p style={{
-                fontSize: '13px',
-                opacity: 0.7,
+                fontSize: '12px',
+                opacity: 0.6,
                 color: '#E5E5E5',
-                marginTop: '16px'
+                marginTop: '24px',
+                fontWeight: 300
               }}>
                 Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
               </p>
@@ -359,22 +461,22 @@ function ReportContent() {
               display: 'none'
             }} className="table-of-contents-desktop">
               <div style={{
-                backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '12px',
-                padding: '20px',
-                minWidth: '240px'
+                backgroundColor: 'transparent',
+                border: 'none',
+                padding: '0',
+                minWidth: '200px'
               }}>
                 <h3 style={{
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  marginBottom: '16px',
+                  fontSize: '11px',
+                  fontWeight: 400,
+                  marginBottom: '20px',
                   color: '#E5E5E5',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  opacity: 0.8
+                  letterSpacing: '1px',
+                  opacity: 0.5,
+                  fontFamily: 'serif'
                 }}>
-                  Sumário
+                  Índice
                 </h3>
                 <nav>
                   {sortedBlocks.map((block, idx) => (
@@ -386,17 +488,19 @@ function ReportContent() {
                       }}
                       style={{
                         display: 'block',
-                        padding: '8px 0',
-                        fontSize: '14px',
+                        padding: '6px 0',
+                        fontSize: '13px',
                         color: '#E5E5E5',
-                        opacity: 0.88,
+                        opacity: 0.65,
                         cursor: 'pointer',
                         textDecoration: 'none',
-                        borderBottom: idx < sortedBlocks.length - 1 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none',
-                        transition: 'opacity 0.2s'
+                        borderBottom: 'none',
+                        transition: 'opacity 0.2s',
+                        fontWeight: 300,
+                        lineHeight: 1.5
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0.88'}
+                      onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0.65'}
                     >
                       {String(block.title || '')}
                     </a>
@@ -408,33 +512,33 @@ function ReportContent() {
             {/* Botão Mobile para Sumário */}
             <div style={{
               display: 'block',
-              marginBottom: '32px'
+              marginBottom: '48px'
             }} className="table-of-contents-mobile">
               <button
                 onClick={() => setIsTableOfContentsOpen(!isTableOfContentsOpen)}
                 style={{
                   width: '100%',
-                  padding: '14px 20px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  borderRadius: '12px',
+                  padding: '12px 16px',
+                  backgroundColor: 'transparent',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '4px',
                   color: '#E5E5E5',
-                  fontSize: '15px',
-                  fontWeight: 500,
+                  fontSize: '13px',
+                  fontWeight: 300,
                   cursor: 'pointer',
-                  textAlign: 'left'
+                  textAlign: 'left',
+                  opacity: 0.7
                 }}
               >
-                {isTableOfContentsOpen ? '▼ Ocultar capítulos' : '▶ Ver capítulos'}
+                {isTableOfContentsOpen ? 'Ocultar índice' : 'Índice'}
               </button>
               
               {isTableOfContentsOpen && (
                 <div style={{
-                  marginTop: '12px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '12px',
-                  padding: '16px'
+                  marginTop: '16px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  padding: '0'
                 }}>
                   {sortedBlocks.map((block, idx) => (
                     <a
@@ -445,13 +549,14 @@ function ReportContent() {
                       }}
                       style={{
                         display: 'block',
-                        padding: '10px 0',
-                        fontSize: '14px',
+                        padding: '8px 0',
+                        fontSize: '13px',
                         color: '#E5E5E5',
-                        opacity: 0.88,
+                        opacity: 0.65,
                         cursor: 'pointer',
                         textDecoration: 'none',
-                        borderBottom: idx < sortedBlocks.length - 1 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none'
+                        borderBottom: 'none',
+                        fontWeight: 300
                       }}
                     >
                       {String(block.title || '')}
@@ -462,157 +567,206 @@ function ReportContent() {
             </div>
 
             {/* BLOCOS PREMIUM */}
-            {sortedBlocks.map((block, index) => (
-              <section 
-                id={block.block_id || `block-${index}`}
-                key={block.block_id || index}
-                style={{ 
-                  marginBottom: index < sortedBlocks.length - 1 ? '88px' : '0',
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.06)',
-                  borderRadius: '20px',
-                  padding: '36px'
-                }}
-              >
-                <div style={{
-                  display: 'inline-block',
-                  padding: '4px 12px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  borderRadius: '12px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  color: '#E5E5E5',
-                  opacity: 0.8,
-                  marginBottom: '16px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  Bloco {block.order || index + 1}
-                </div>
+            {sortedBlocks.map((block, index) => {
+              const blockOrder = block.order || index + 1;
+              const hasCard = shouldHaveCard(blockOrder);
+              const visualStyle = getBlockVisualStyle(blockOrder);
+              const cardStyle = hasCard ? getCardStyle(blockOrder) : null;
 
-                <h2 style={{ 
-                  fontSize: '32px', 
-                  fontWeight: 600, 
-                  marginBottom: '10px',
-                  marginTop: '0',
-                  color: '#E5E5E5',
-                  lineHeight: 1.3
-                }}>
-                  {String(block.title || '')}
-                </h2>
-                
-                {block.subtitle && (
-                  <p style={{ 
-                    fontStyle: 'italic', 
-                    fontSize: '16px', 
-                    opacity: 0.7, 
-                    marginTop: '10px',
-                    marginBottom: '32px',
-                    color: '#E5E5E5',
-                    lineHeight: 1.5
-                  }}>
-                    {String(block.subtitle)}
-                  </p>
-                )}
-                
-                <div style={{
-                  maxWidth: '68ch'
-                }}>
-                  {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
+              return (
+                <section 
+                  id={block.block_id || `block-${index}`}
+                  key={block.block_id || index}
+                  style={visualStyle}
+                >
+                  {hasCard ? (
+                    <div style={cardStyle}>
+                      <h2 style={{ 
+                        fontSize: '28px', 
+                        fontWeight: 400, 
+                        marginBottom: '12px',
+                        marginTop: '0',
+                        color: '#E5E5E5',
+                        lineHeight: 1.4,
+                        letterSpacing: '-0.3px'
+                      }}>
+                        {String(block.title || '')}
+                      </h2>
+                      
+                      {block.subtitle && (
+                        <p style={{ 
+                          fontStyle: 'italic', 
+                          fontSize: '15px', 
+                          opacity: 0.65, 
+                          marginTop: '8px',
+                          marginBottom: '28px',
+                          color: '#E5E5E5',
+                          lineHeight: 1.5,
+                          fontWeight: 300
+                        }}>
+                          {String(block.subtitle)}
+                        </p>
+                      )}
+                      
+                      <div style={{
+                        maxWidth: '68ch'
+                      }}>
+                        {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
+                          <>
+                            {block.paragraphs.map((text, idx) => {
+                              if (!text || String(text).trim() === '') return null;
+                              const textStr = String(text);
+                              const highlightedText = highlightKeyPhrases(textStr);
+                              const isKeyPhrase = highlightedText !== textStr;
+                              
+                              return (
+                                <div
+                                  key={idx}
+                                  dangerouslySetInnerHTML={{ __html: highlightedText }}
+                                  style={{ 
+                                    fontSize: isKeyPhrase ? '20px' : '17px', 
+                                    lineHeight: isKeyPhrase ? 1.7 : 1.75,
+                                    opacity: isKeyPhrase ? 0.92 : 0.85,
+                                    marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '40px' : '28px') : '0',
+                                    color: '#E5E5E5',
+                                    fontWeight: 300
+                                  }}
+                                />
+                              );
+                            })}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
                     <>
-                      {block.paragraphs.map((text, idx) => {
-                        if (!text || String(text).trim() === '') return null;
-                        return (
-                          <p 
-                            key={idx}
-                            style={{ 
-                              fontSize: '18px', 
-                              lineHeight: 1.75,
-                              opacity: 0.88,
-                              marginBottom: idx < block.paragraphs.length - 1 ? '24px' : '0',
-                              color: '#E5E5E5'
-                            }}
-                          >
-                            {String(text)}
-                          </p>
-                        );
-                      })}
+                      <h2 style={{ 
+                        fontSize: '28px', 
+                        fontWeight: 400, 
+                        marginBottom: '12px',
+                        marginTop: '0',
+                        color: '#E5E5E5',
+                        lineHeight: 1.4,
+                        letterSpacing: '-0.3px'
+                      }}>
+                        {String(block.title || '')}
+                      </h2>
+                      
+                      {block.subtitle && (
+                        <p style={{ 
+                          fontStyle: 'italic', 
+                          fontSize: '15px', 
+                          opacity: 0.65, 
+                          marginTop: '8px',
+                          marginBottom: '28px',
+                          color: '#E5E5E5',
+                          lineHeight: 1.5,
+                          fontWeight: 300
+                        }}>
+                          {String(block.subtitle)}
+                        </p>
+                      )}
+                      
+                      <div style={{
+                        maxWidth: '68ch'
+                      }}>
+                        {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
+                          <>
+                            {block.paragraphs.map((text, idx) => {
+                              if (!text || String(text).trim() === '') return null;
+                              const textStr = String(text);
+                              const highlightedText = highlightKeyPhrases(textStr);
+                              const isKeyPhrase = highlightedText !== textStr;
+                              
+                              return (
+                                <div
+                                  key={idx}
+                                  dangerouslySetInnerHTML={{ __html: highlightedText }}
+                                  style={{ 
+                                    fontSize: isKeyPhrase ? '20px' : '17px', 
+                                    lineHeight: isKeyPhrase ? 1.7 : 1.75,
+                                    opacity: isKeyPhrase ? 0.92 : 0.85,
+                                    marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '40px' : '28px') : '0',
+                                    color: '#E5E5E5',
+                                    fontWeight: 300
+                                  }}
+                                />
+                              );
+                            })}
+                          </>
+                        )}
+                      </div>
                     </>
                   )}
-                </div>
-                
-                {index < sortedBlocks.length - 1 && (
-                  <div style={{
-                    marginTop: '48px',
-                    height: '1px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                    width: '80px'
-                  }} />
-                )}
-              </section>
-            ))}
+                  
+                  {index < sortedBlocks.length - 1 && !hasCard && (
+                    <div style={{
+                      marginTop: '64px',
+                      height: '1px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      width: '100%'
+                    }} />
+                  )}
+                </section>
+              );
+            })}
 
             {/* RODAPÉ PREMIUM */}
             <section style={{ 
-              marginTop: '96px',
-              backgroundColor: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
-              borderRadius: '20px',
-              padding: '48px 36px',
+              marginTop: '120px',
+              paddingTop: '64px',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
               textAlign: 'center'
             }}>
               <h2 style={{ 
-                fontSize: '28px', 
-                marginBottom: '16px',
+                fontSize: '24px', 
+                marginBottom: '20px',
                 color: '#E5E5E5',
-                fontWeight: 600
+                fontWeight: 400,
+                letterSpacing: '-0.3px'
               }}>
                 Leve este relatório com você
               </h2>
               <p style={{ 
-                fontSize: '16px', 
-                opacity: 0.88, 
-                marginBottom: '32px',
+                fontSize: '15px', 
+                opacity: 0.7, 
+                marginBottom: '40px',
                 color: '#E5E5E5',
-                lineHeight: 1.6
+                lineHeight: 1.6,
+                fontWeight: 300,
+                maxWidth: '500px',
+                margin: '0 auto 40px auto'
               }}>
                 Este material foi criado para ser relido com calma. Você pode baixar a versão em PDF para acessar quando quiser.
               </p>
               <button
                 onClick={handleDownloadPDF}
                 style={{
-                  padding: '16px 32px',
-                  fontSize: '16px',
-                  fontWeight: 600,
+                  padding: '14px 28px',
+                  fontSize: '15px',
+                  fontWeight: 400,
                   backgroundColor: '#ffffff',
                   color: '#000000',
                   border: 'none',
-                  borderRadius: '12px',
+                  borderRadius: '4px',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  transition: 'transform 0.2s, box-shadow 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 255, 255, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
+                  gap: '10px',
+                  letterSpacing: '0.3px'
                 }}
               >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.8 }}>
                   <path d="M17.5 12.5V15.8333C17.5 16.2754 17.3244 16.6993 17.0118 17.0118C16.6993 17.3244 16.2754 17.5 15.8333 17.5H4.16667C3.72464 17.5 3.30072 17.3244 2.98816 17.0118C2.67559 16.6993 2.5 16.2754 2.5 15.8333V12.5M13.3333 8.33333L10 11.6667M10 11.6667L6.66667 8.33333M10 11.6667V2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 Baixar PDF
               </button>
               <p style={{
-                fontSize: '13px',
-                opacity: 0.7,
+                fontSize: '12px',
+                opacity: 0.6,
                 color: '#E5E5E5',
-                marginTop: '16px'
+                marginTop: '20px',
+                fontWeight: 300
               }}>
                 Recomendado para leitura offline
               </p>
@@ -627,7 +781,7 @@ function ReportContent() {
               position: fixed;
               right: max(24px, calc((100vw - 1200px) / 2));
               top: 120px;
-              max-width: 260px;
+              max-width: 200px;
             }
             .table-of-contents-mobile {
               display: none !important;
@@ -648,19 +802,38 @@ function ReportContent() {
 
   // Fallback para estrutura antiga (se não veio de premium_report_content)
   const blocks = report.premium_report_content?.blocks || [];
-  const sortedBlocks = [...blocks].sort((a, b) => (a.order || 0) - (b.order || 0));
-  const profileName = report.profileName || extractProfileNameFromFirstParagraph(sortedBlocks);
+  const sortedBlocksFallback = [...blocks].sort((a, b) => (a.order || 0) - (b.order || 0));
+  const profileNameFallback = report.profileName || extractProfileNameFromFirstParagraph(sortedBlocksFallback);
 
   return (
-    <main className="page-root result-page" style={{ position: 'relative' }}>
-      <div
-        className="page-bg"
-        style={{ 
-          backgroundImage: `url(${LP_BG_URL})`,
-          filter: 'blur(2px)'
-        }}
-      />
-      <div className="page-overlay" />
+    <main className="page-root result-page" style={{ 
+      position: 'relative',
+      minHeight: '100vh',
+      backgroundColor: '#0F0F0F',
+      background: `
+        radial-gradient(circle at 20% 50%, rgba(18, 18, 18, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(14, 14, 14, 0.3) 0%, transparent 50%),
+        #0F0F0F
+      `,
+      backgroundSize: '100% 100%',
+      backgroundAttachment: 'fixed'
+    }}>
+      {/* Granulação sutil */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundImage: `
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0px, transparent 1px, transparent 2px, rgba(255, 255, 255, 0.015) 3px),
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0px, transparent 1px, transparent 2px, rgba(255, 255, 255, 0.015) 3px)
+        `,
+        backgroundSize: '100px 100px',
+        pointerEvents: 'none',
+        zIndex: 1,
+        opacity: 0.4
+      }} />
       
       <div style={{ 
         maxWidth: '720px', 
@@ -669,16 +842,6 @@ function ReportContent() {
         position: 'relative',
         zIndex: 10
       }}>
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.75)',
-          borderRadius: '8px',
-          zIndex: 1
-        }} />
         
         <div 
           ref={reportContainerRef} 
@@ -691,54 +854,57 @@ function ReportContent() {
           {/* CAPA */}
           <section style={{
             width: '100%',
-            padding: '56px 0 40px 0',
-            background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.3) 100%)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '24px',
-            marginBottom: '64px',
-            textAlign: 'center'
+            padding: '64px 0 48px 0',
+            marginBottom: '80px',
+            textAlign: 'center',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            paddingBottom: '48px'
           }}>
             <h1 style={{ 
-              fontSize: '42px', 
-              fontWeight: 700, 
-              marginBottom: '20px',
+              fontSize: '38px', 
+              fontWeight: 500, 
+              marginBottom: '24px',
               color: '#E5E5E5',
-              lineHeight: 1.2
+              lineHeight: 1.3,
+              letterSpacing: '-0.5px'
             }}>
               {String(report.title || 'Relatório Premium')}
             </h1>
             
             <p style={{
-              fontSize: '18px',
-              opacity: 0.88,
-              marginBottom: '24px',
+              fontSize: '17px',
+              opacity: 0.75,
+              marginBottom: '28px',
               color: '#E5E5E5',
-              lineHeight: 1.6
+              lineHeight: 1.6,
+              fontWeight: 300
             }}>
               Leitura completa para entender seu padrão e ajustar decisões com método.
             </p>
 
-            {profileName && (
+            {profileNameFallback && (
               <div style={{
                 display: 'inline-block',
-                padding: '8px 16px',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '20px',
-                marginBottom: '20px',
-                fontSize: '14px',
-                fontWeight: 500,
+                padding: '6px 14px',
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                borderRadius: '4px',
+                marginBottom: '24px',
+                fontSize: '13px',
+                fontWeight: 400,
                 color: '#E5E5E5',
-                border: '1px solid rgba(255, 255, 255, 0.15)'
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                letterSpacing: '0.3px'
               }}>
-                {String(profileName)}
+                {String(profileNameFallback)}
               </div>
             )}
 
             <p style={{
-              fontSize: '13px',
-              opacity: 0.7,
+              fontSize: '12px',
+              opacity: 0.6,
               color: '#E5E5E5',
-              marginTop: '16px'
+              marginTop: '24px',
+              fontWeight: 300
             }}>
               Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
             </p>
@@ -753,25 +919,25 @@ function ReportContent() {
             display: 'none'
           }} className="table-of-contents-desktop">
             <div style={{
-              backgroundColor: 'rgba(0, 0, 0, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '12px',
-              padding: '20px',
-              minWidth: '240px'
+              backgroundColor: 'transparent',
+              border: 'none',
+              padding: '0',
+              minWidth: '200px'
             }}>
               <h3 style={{
-                fontSize: '14px',
-                fontWeight: 600,
-                marginBottom: '16px',
+                fontSize: '11px',
+                fontWeight: 400,
+                marginBottom: '20px',
                 color: '#E5E5E5',
                 textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                opacity: 0.8
+                letterSpacing: '1px',
+                opacity: 0.5,
+                fontFamily: 'serif'
               }}>
-                Sumário
+                Índice
               </h3>
               <nav>
-                {sortedBlocks.map((block, idx) => (
+                {sortedBlocksFallback.map((block, idx) => (
                   <a
                     key={block.block_id || idx}
                     onClick={(e) => {
@@ -780,17 +946,19 @@ function ReportContent() {
                     }}
                     style={{
                       display: 'block',
-                      padding: '8px 0',
-                      fontSize: '14px',
+                      padding: '6px 0',
+                      fontSize: '13px',
                       color: '#E5E5E5',
-                      opacity: 0.88,
+                      opacity: 0.65,
                       cursor: 'pointer',
                       textDecoration: 'none',
-                      borderBottom: idx < sortedBlocks.length - 1 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none',
-                      transition: 'opacity 0.2s'
+                      borderBottom: 'none',
+                      transition: 'opacity 0.2s',
+                      fontWeight: 300,
+                      lineHeight: 1.5
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                    onMouseLeave={(e) => e.currentTarget.style.opacity = '0.88'}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '0.65'}
                   >
                     {String(block.title || '')}
                   </a>
@@ -802,35 +970,35 @@ function ReportContent() {
           {/* Botão Mobile para Sumário */}
           <div style={{
             display: 'block',
-            marginBottom: '32px'
+            marginBottom: '48px'
           }} className="table-of-contents-mobile">
             <button
               onClick={() => setIsTableOfContentsOpen(!isTableOfContentsOpen)}
               style={{
                 width: '100%',
-                padding: '14px 20px',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                borderRadius: '12px',
+                padding: '12px 16px',
+                backgroundColor: 'transparent',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '4px',
                 color: '#E5E5E5',
-                fontSize: '15px',
-                fontWeight: 500,
+                fontSize: '13px',
+                fontWeight: 300,
                 cursor: 'pointer',
-                textAlign: 'left'
+                textAlign: 'left',
+                opacity: 0.7
               }}
             >
-              {isTableOfContentsOpen ? '▼ Ocultar capítulos' : '▶ Ver capítulos'}
+              {isTableOfContentsOpen ? 'Ocultar índice' : 'Índice'}
             </button>
             
             {isTableOfContentsOpen && (
               <div style={{
-                marginTop: '12px',
-                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '12px',
-                padding: '16px'
+                marginTop: '16px',
+                backgroundColor: 'transparent',
+                border: 'none',
+                padding: '0'
               }}>
-                {sortedBlocks.map((block, idx) => (
+                {sortedBlocksFallback.map((block, idx) => (
                   <a
                     key={block.block_id || idx}
                     onClick={(e) => {
@@ -839,13 +1007,14 @@ function ReportContent() {
                     }}
                     style={{
                       display: 'block',
-                      padding: '10px 0',
-                      fontSize: '14px',
+                      padding: '8px 0',
+                      fontSize: '13px',
                       color: '#E5E5E5',
-                      opacity: 0.88,
+                      opacity: 0.65,
                       cursor: 'pointer',
                       textDecoration: 'none',
-                      borderBottom: idx < sortedBlocks.length - 1 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none'
+                      borderBottom: 'none',
+                      fontWeight: 300
                     }}
                   >
                     {String(block.title || '')}
@@ -856,157 +1025,206 @@ function ReportContent() {
           </div>
 
           {/* BLOCOS PREMIUM */}
-          {sortedBlocks.map((block, index) => (
-            <section 
-              id={block.block_id || `block-${index}`}
-              key={block.block_id || index}
-              style={{ 
-                marginBottom: index < sortedBlocks.length - 1 ? '88px' : '0',
-                backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
-                borderRadius: '20px',
-                padding: '36px'
-              }}
-            >
-              <div style={{
-                display: 'inline-block',
-                padding: '4px 12px',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                borderRadius: '12px',
-                fontSize: '12px',
-                fontWeight: 600,
-                color: '#E5E5E5',
-                opacity: 0.8,
-                marginBottom: '16px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}>
-                Bloco {block.order || index + 1}
-              </div>
+          {sortedBlocksFallback.map((block, index) => {
+            const blockOrder = block.order || index + 1;
+            const hasCard = shouldHaveCard(blockOrder);
+            const visualStyle = getBlockVisualStyle(blockOrder);
+            const cardStyle = hasCard ? getCardStyle(blockOrder) : null;
 
-              <h2 style={{ 
-                fontSize: '32px', 
-                fontWeight: 600, 
-                marginBottom: '10px',
-                marginTop: '0',
-                color: '#E5E5E5',
-                lineHeight: 1.3
-              }}>
-                {String(block.title || '')}
-              </h2>
-              
-              {block.subtitle && (
-                <p style={{ 
-                  fontStyle: 'italic', 
-                  fontSize: '16px', 
-                  opacity: 0.7, 
-                  marginTop: '10px',
-                  marginBottom: '32px',
-                  color: '#E5E5E5',
-                  lineHeight: 1.5
-                }}>
-                  {String(block.subtitle)}
-                </p>
-              )}
-              
-              <div style={{
-                maxWidth: '68ch'
-              }}>
-                {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
-                  <>
-                    {block.paragraphs.map((text, idx) => {
-                      if (!text || String(text).trim() === '') return null;
-                      return (
-                        <p 
-                          key={idx}
-                          style={{ 
-                            fontSize: '18px', 
-                            lineHeight: 1.75,
-                            opacity: 0.88,
-                            marginBottom: idx < block.paragraphs.length - 1 ? '24px' : '0',
-                            color: '#E5E5E5'
-                          }}
-                        >
-                          {String(text)}
+            return (
+              <section 
+                id={block.block_id || `block-${index}`}
+                key={block.block_id || index}
+                style={visualStyle}
+              >
+                {hasCard ? (
+                  <div style={cardStyle}>
+                      <h2 style={{ 
+                        fontSize: '28px', 
+                        fontWeight: 400, 
+                        marginBottom: '12px',
+                        marginTop: '0',
+                        color: '#E5E5E5',
+                        lineHeight: 1.4,
+                        letterSpacing: '-0.3px'
+                      }}>
+                        {String(block.title || '')}
+                      </h2>
+                      
+                      {block.subtitle && (
+                        <p style={{ 
+                          fontStyle: 'italic', 
+                          fontSize: '15px', 
+                          opacity: 0.65, 
+                          marginTop: '8px',
+                          marginBottom: '28px',
+                          color: '#E5E5E5',
+                          lineHeight: 1.5,
+                          fontWeight: 300
+                        }}>
+                          {String(block.subtitle)}
                         </p>
-                      );
-                    })}
-                  </>
-                )}
-              </div>
-              
-              {index < sortedBlocks.length - 1 && (
-                <div style={{
-                  marginTop: '48px',
-                  height: '1px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                  width: '80px'
-                }} />
-              )}
-            </section>
-          ))}
+                      )}
+                      
+                      <div style={{
+                        maxWidth: '68ch'
+                      }}>
+                        {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
+                          <>
+                            {block.paragraphs.map((text, idx) => {
+                              if (!text || String(text).trim() === '') return null;
+                              const textStr = String(text);
+                              const highlightedText = highlightKeyPhrases(textStr);
+                              const isKeyPhrase = highlightedText !== textStr;
+                              
+                              return (
+                                <div
+                                  key={idx}
+                                  dangerouslySetInnerHTML={{ __html: highlightedText }}
+                                  style={{ 
+                                    fontSize: isKeyPhrase ? '20px' : '17px', 
+                                    lineHeight: isKeyPhrase ? 1.7 : 1.75,
+                                    opacity: isKeyPhrase ? 0.92 : 0.85,
+                                    marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '40px' : '28px') : '0',
+                                    color: '#E5E5E5',
+                                    fontWeight: 300
+                                  }}
+                                />
+                              );
+                            })}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h2 style={{ 
+                        fontSize: '28px', 
+                        fontWeight: 400, 
+                        marginBottom: '12px',
+                        marginTop: '0',
+                        color: '#E5E5E5',
+                        lineHeight: 1.4,
+                        letterSpacing: '-0.3px'
+                      }}>
+                        {String(block.title || '')}
+                      </h2>
+                      
+                      {block.subtitle && (
+                        <p style={{ 
+                          fontStyle: 'italic', 
+                          fontSize: '15px', 
+                          opacity: 0.65, 
+                          marginTop: '8px',
+                          marginBottom: '28px',
+                          color: '#E5E5E5',
+                          lineHeight: 1.5,
+                          fontWeight: 300
+                        }}>
+                          {String(block.subtitle)}
+                        </p>
+                      )}
+                      
+                      <div style={{
+                        maxWidth: '68ch'
+                      }}>
+                        {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
+                          <>
+                            {block.paragraphs.map((text, idx) => {
+                              if (!text || String(text).trim() === '') return null;
+                              const textStr = String(text);
+                              const highlightedText = highlightKeyPhrases(textStr);
+                              const isKeyPhrase = highlightedText !== textStr;
+                              
+                              return (
+                                <div
+                                  key={idx}
+                                  dangerouslySetInnerHTML={{ __html: highlightedText }}
+                                  style={{ 
+                                    fontSize: isKeyPhrase ? '20px' : '17px', 
+                                    lineHeight: isKeyPhrase ? 1.7 : 1.75,
+                                    opacity: isKeyPhrase ? 0.92 : 0.85,
+                                    marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '40px' : '28px') : '0',
+                                    color: '#E5E5E5',
+                                    fontWeight: 300
+                                  }}
+                                />
+                              );
+                            })}
+                          </>
+                        )}
+                      </div>
+                    </>
+                  )}
+                  
+                  {index < sortedBlocksFallback.length - 1 && !hasCard && (
+                    <div style={{
+                      marginTop: '64px',
+                      height: '1px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      width: '100%'
+                    }} />
+                  )}
+                </section>
+              );
+            })}
 
           {/* RODAPÉ PREMIUM */}
           <section style={{ 
-            marginTop: '96px',
-            backgroundColor: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
-            borderRadius: '20px',
-            padding: '48px 36px',
+            marginTop: '120px',
+            paddingTop: '64px',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
             textAlign: 'center'
           }}>
             <h2 style={{ 
-              fontSize: '28px', 
-              marginBottom: '16px',
+              fontSize: '24px', 
+              marginBottom: '20px',
               color: '#E5E5E5',
-              fontWeight: 600
+              fontWeight: 400,
+              letterSpacing: '-0.3px'
             }}>
               Leve este relatório com você
             </h2>
             <p style={{ 
-              fontSize: '16px', 
-              opacity: 0.88, 
-              marginBottom: '32px',
+              fontSize: '15px', 
+              opacity: 0.7, 
+              marginBottom: '40px',
               color: '#E5E5E5',
-              lineHeight: 1.6
+              lineHeight: 1.6,
+              fontWeight: 300,
+              maxWidth: '500px',
+              margin: '0 auto 40px auto'
             }}>
               Este material foi criado para ser relido com calma. Você pode baixar a versão em PDF para acessar quando quiser.
             </p>
             <button
               onClick={handleDownloadPDF}
               style={{
-                padding: '16px 32px',
-                fontSize: '16px',
-                fontWeight: 600,
+                padding: '14px 28px',
+                fontSize: '15px',
+                fontWeight: 400,
                 backgroundColor: '#ffffff',
                 color: '#000000',
                 border: 'none',
-                borderRadius: '12px',
+                borderRadius: '4px',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '8px',
-                transition: 'transform 0.2s, box-shadow 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 255, 255, 0.2)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
+                gap: '10px',
+                letterSpacing: '0.3px'
               }}
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.8 }}>
                 <path d="M17.5 12.5V15.8333C17.5 16.2754 17.3244 16.6993 17.0118 17.0118C16.6993 17.3244 16.2754 17.5 15.8333 17.5H4.16667C3.72464 17.5 3.30072 17.3244 2.98816 17.0118C2.67559 16.6993 2.5 16.2754 2.5 15.8333V12.5M13.3333 8.33333L10 11.6667M10 11.6667L6.66667 8.33333M10 11.6667V2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               Baixar PDF
             </button>
             <p style={{
-              fontSize: '13px',
-              opacity: 0.7,
+              fontSize: '12px',
+              opacity: 0.6,
               color: '#E5E5E5',
-              marginTop: '16px'
+              marginTop: '20px',
+              fontWeight: 300
             }}>
               Recomendado para leitura offline
             </p>
@@ -1015,18 +1233,19 @@ function ReportContent() {
       </div>
 
       <style jsx>{`
-        @media (min-width: 1024px) {
+        @media (min-width: 1200px) {
           .table-of-contents-desktop {
             display: block !important;
             position: fixed;
-            right: calc((100vw - 720px) / 2 - 280px);
+            right: max(24px, calc((100vw - 1200px) / 2));
             top: 120px;
+            max-width: 200px;
           }
           .table-of-contents-mobile {
             display: none !important;
           }
         }
-        @media (max-width: 1023px) {
+        @media (max-width: 1199px) {
           .table-of-contents-desktop {
             display: none !important;
           }
