@@ -21,25 +21,56 @@ const KIWIFY_PRODUCT_URL =
 // Log para debug (será removido em produção se necessário)
 if (typeof window !== 'undefined') {
   console.log('[PAYWALL] KIWIFY_PRODUCT_URL carregada:', KIWIFY_PRODUCT_URL ? 'SIM' : 'NÃO');
+  
+  // Habilitar scroll IMEDIATAMENTE quando o módulo carregar
+  const html = document.documentElement;
+  const body = document.body;
+  
+  html.classList.add("paywall-page-active");
+  body.classList.add("paywall-page-active");
+  
+  // Forçar remoção de bloqueios de scroll IMEDIATAMENTE
+  body.style.position = "relative";
+  body.style.overflow = "auto";
+  body.style.height = "auto";
+  body.style.top = "auto";
+  body.style.left = "auto";
+  body.style.right = "auto";
+  body.style.bottom = "auto";
+  html.style.overflow = "auto";
+  html.style.height = "auto";
+  
+  console.log('[PAYWALL] Scroll habilitado imediatamente no carregamento do módulo');
 }
 
 export default function PaywallPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Habilitar scroll na página
+    // Garantir que scroll está habilitado (pode já estar habilitado pelo código no topo)
     const html = document.documentElement;
     const body = document.body;
     
-    html.classList.add("paywall-page-active");
-    body.classList.add("paywall-page-active");
+    // Adicionar classes se ainda não estiverem
+    if (!html.classList.contains("paywall-page-active")) {
+      html.classList.add("paywall-page-active");
+    }
+    if (!body.classList.contains("paywall-page-active")) {
+      body.classList.add("paywall-page-active");
+    }
     
-    // Forçar remoção de bloqueios de scroll
+    // Forçar remoção de bloqueios de scroll (garantir que está aplicado)
     body.style.position = "relative";
     body.style.overflow = "auto";
     body.style.height = "auto";
+    body.style.top = "auto";
+    body.style.left = "auto";
+    body.style.right = "auto";
+    body.style.bottom = "auto";
     html.style.overflow = "auto";
     html.style.height = "auto";
+    
+    console.log('[PAYWALL] useEffect: Scroll garantido');
     
     const sessionId = getSessionId();
     const resultId = getResultId();
@@ -111,15 +142,22 @@ export default function PaywallPage() {
       }
     }, 100);
     
-    // Cleanup ao desmontar
+    // Cleanup ao desmontar - restaurar estado padrão
     return () => {
       html.classList.remove("paywall-page-active");
       body.classList.remove("paywall-page-active");
-      body.style.position = "";
-      body.style.overflow = "";
-      body.style.height = "";
-      html.style.overflow = "";
-      html.style.height = "";
+      // Restaurar estilos padrão apenas se não estiver em outra página que precisa de scroll
+      if (!html.classList.contains("result-page-active")) {
+        body.style.position = "";
+        body.style.overflow = "";
+        body.style.height = "";
+        body.style.top = "";
+        body.style.left = "";
+        body.style.right = "";
+        body.style.bottom = "";
+        html.style.overflow = "";
+        html.style.height = "";
+      }
     };
   }, [router]);
 

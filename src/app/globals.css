@@ -468,11 +468,23 @@ body.result-page-active {
 }
 
 /* Página paywall permite scroll */
-html.paywall-page-active,
-body.paywall-page-active {
-  overflow: auto !important;
+html.paywall-page-active {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   height: auto !important;
   position: relative !important;
+}
+
+body.paywall-page-active {
+  position: relative !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
 }
 
 .page-root.paywall-page {
