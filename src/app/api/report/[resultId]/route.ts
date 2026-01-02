@@ -523,19 +523,25 @@ export async function GET(
 
     // Buscar blocos do relatório premium
     let blocks = [];
+    let premiumTitle = null;
     
     if (dominantProfile.id && dominantProfile.id !== 'fallback') {
       const { data: premiumContent } = await supabase
         .from('premium_report_content')
-        .select('blocks')
+        .select('title, blocks')
         .eq('profile_id', dominantProfile.id)
         .eq('is_active', true)
         .order('version', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (premiumContent?.blocks && Array.isArray(premiumContent.blocks)) {
-        blocks = premiumContent.blocks;
+      if (premiumContent) {
+        if (premiumContent.blocks && Array.isArray(premiumContent.blocks)) {
+          blocks = premiumContent.blocks;
+        }
+        if (premiumContent.title) {
+          premiumTitle = premiumContent.title;
+        }
       }
     }
 
@@ -625,6 +631,21 @@ export async function GET(
     // Ordenar blocos por order
     blocks.sort((a, b) => (a.order || 0) - (b.order || 0));
 
+    // Se encontrou blocos do premium_report_content, retornar no formato esperado
+    if (blocks.length > 0 && premiumTitle) {
+      return NextResponse.json({
+        resultId,
+        title: premiumTitle,
+        blocks: blocks,
+        dominant: {
+          domain: dominantDomain,
+          profile: dominantProfile,
+        },
+        domains: domainsWithLevels,
+      });
+    }
+
+    // Fallback: retornar estrutura antiga se não encontrou blocos
     return NextResponse.json({
       resultId,
       dominant: {

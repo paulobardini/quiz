@@ -223,8 +223,8 @@ function ReportContent() {
     return null;
   }
 
-  // Se veio de premium_report_content (tem title e blocks)
-  if (report.title && report.blocks) {
+  // Se veio de premium_report_content (tem title e blocks) OU de /api/report/[resultId] com blocos
+  if (report.title && report.blocks && Array.isArray(report.blocks)) {
     const sortedBlocks = [...report.blocks].sort((a, b) => (a.order || 0) - (b.order || 0));
 
     return (
