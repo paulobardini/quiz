@@ -159,9 +159,9 @@ export default function PaywallPage() {
       <section className="page-center paywall-center" style={{ padding: '24px', minHeight: '100vh', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflow: 'visible' }}>
         <div className="page-card" style={{ maxWidth: "640px", borderRadius: "26px", padding: "48px 40px", margin: '40px auto' }}>
           <div className="mb-10">
-            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10" style={{ backdropFilter: "blur(8px)" }}>
+            <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10" style={{ backdropFilter: "blur(8px)" }}>
               <svg
-                className="w-8 h-8 text-white"
+                className="w-5 h-5 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -169,8 +169,8 @@ export default function PaywallPage() {
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  strokeWidth={2.5}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
             </div>
@@ -182,11 +182,11 @@ export default function PaywallPage() {
             </p>
           </div>
 
-          <div className="mb-8 space-y-5 text-left">
-            <div className="flex items-start space-x-4">
-              <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1 border border-white/10">
+          <div className="mb-8 space-y-4 text-left">
+            <div className="flex items-start space-x-3">
+              <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/10">
                 <svg
-                  className="w-4 h-4 text-white"
+                  className="w-3 h-3 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -194,7 +194,7 @@ export default function PaywallPage() {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
+                    strokeWidth={2.5}
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
@@ -209,10 +209,10 @@ export default function PaywallPage() {
               </div>
             </div>
 
-            <div className="flex items-start space-x-4">
-              <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1 border border-white/10">
+            <div className="flex items-start space-x-3">
+              <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/10">
                 <svg
-                  className="w-4 h-4 text-white"
+                  className="w-3 h-3 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -220,7 +220,7 @@ export default function PaywallPage() {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
+                    strokeWidth={2.5}
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
@@ -235,10 +235,10 @@ export default function PaywallPage() {
               </div>
             </div>
 
-            <div className="flex items-start space-x-4">
-              <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1 border border-white/10">
+            <div className="flex items-start space-x-3">
+              <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/10">
                 <svg
-                  className="w-4 h-4 text-white"
+                  className="w-3 h-3 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -246,7 +246,7 @@ export default function PaywallPage() {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
+                    strokeWidth={2.5}
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
