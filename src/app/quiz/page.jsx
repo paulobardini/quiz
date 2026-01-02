@@ -184,17 +184,14 @@ export default function QuizPage() {
     setIsSubmitting(true);
 
     try {
-      // Enviar resposta primeiro (com await para garantir que foi enviada)
+      // Enviar resposta primeiro (sem delay desnecessário)
       await submitAnswer({
         sessionId,
         questionId: question.id,
         optionId,
       });
 
-      // Pequeno delay para melhorar experiência do usuário (3ms)
-      await new Promise(resolve => setTimeout(resolve, 3));
-
-      // Buscar próxima pergunta após enviar a resposta
+      // Buscar próxima pergunta imediatamente após enviar
       const nextData = await getNextQuestion({ sessionId });
 
       if (nextData.done) {
