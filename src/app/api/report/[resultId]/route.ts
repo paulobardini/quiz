@@ -567,14 +567,57 @@ export async function GET(
           premiumTitle = premiumContent.title;
         }
       } else {
-        console.warn('[REPORT] Nenhum premium_report_content encontrado para profile_id:', dominantProfile.id);
+        console.warn('[REPORT] Nenhum premium_report_content encontrado para profile_id:', dominantProfile.id, 'profile_key:', dominantProfile.key);
+        // Se não encontrou blocos estruturados, usar conteúdo paid_deepdive e paid_plan específico do perfil
+        if (paidDeepdive || paidPlan) {
+          console.log('[REPORT] Usando conteúdo paid_deepdive/paid_plan específico do perfil como fallback');
+          const deepdiveParagraphs = splitIntoParagraphs(paidDeepdive);
+          const planParagraphs = splitIntoParagraphs(paidPlan);
+          
+          blocks = [
+            {
+              order: 1,
+              block_id: 'abertura',
+              title: 'Abertura',
+              subtitle: 'Validação e leitura inicial do padrão',
+              paragraphs: [
+                'Você identificou um padrão claro nas suas decisões. Isso não é um defeito, é uma forma de funcionar que se consolidou ao longo do tempo.',
+                'Este conteúdo vai te ajudar a entender por que esse padrão existe, como ele aparece no seu dia a dia e o que você pode fazer para ajustá-lo quando necessário.',
+                'O objetivo não é mudar quem você é, mas ampliar sua consciência sobre como você decide.'
+              ]
+            },
+            {
+              order: 2,
+              block_id: 'padrao_acao',
+              title: 'O Padrão em Ação',
+              subtitle: 'Como isso aparece no seu dia a dia',
+              paragraphs: deepdiveParagraphs.filter(p => p).length >= 3 ? deepdiveParagraphs : [
+                'Este padrão se manifesta de forma consistente nas suas escolhas.',
+                'Ele aparece especialmente em situações que exigem decisão rápida.',
+                'Reconhecer esse padrão é o primeiro passo para ter mais controle.'
+              ]
+            },
+            {
+              order: 3,
+              block_id: 'ajuste_pratico',
+              title: 'Ajuste Prático',
+              subtitle: 'O que você pode fazer',
+              paragraphs: planParagraphs.filter(p => p).length >= 3 ? planParagraphs : [
+                'Existem ajustes práticos que você pode fazer para trabalhar com esse padrão.',
+                'O importante é começar pequeno e ser consistente.',
+                'Cada pequeno ajuste contribui para uma mudança maior ao longo do tempo.'
+              ]
+            }
+          ];
+        }
       }
     } else {
       console.warn('[REPORT] Profile ID inválido ou fallback:', dominantProfile.id);
     }
 
-    // Fallback: se não encontrou blocos, criar estrutura básica
+    // Fallback genérico APENAS se não encontrou NADA específico do perfil
     if (blocks.length === 0) {
+      console.error('[REPORT] ERRO: Nenhum conteúdo encontrado para o perfil. Usando fallback genérico (ISSO NÃO DEVERIA ACONTECER).');
       blocks = [
         {
           order: 1,
