@@ -10,7 +10,7 @@ SELECT
   qr.session_id,
   qr.dominant_domain_id,
   qr.dominant_profile_id,
-  qr.scores_json,
+  qr.scores_json::text as scores_json,
   qr.is_complete,
   qr.created_at
 FROM quiz_results qr
@@ -72,21 +72,54 @@ emocional_score AS (
   SELECT 
     (scores->>'emocional')::numeric as score
   FROM result_scores
+),
+emocional_domain AS (
+  SELECT id FROM quiz_domains WHERE key = 'emocional'
 )
 SELECT 
   es.score as score_emocional,
   qpr.profile_key,
   qpr.min_score,
   qpr.max_score,
+  ed.id as domain_id,
   qp.id as profile_id,
   qp.key as profile_key_final,
-  qp.name as profile_name
+  qp.name as profile_name,
+  qp.domain_id as profile_domain_id
 FROM emocional_score es
+CROSS JOIN emocional_domain ed
 CROSS JOIN quiz_profile_rules qpr
-LEFT JOIN quiz_profiles qp ON qp.key = qpr.profile_key AND qp.domain_id = (SELECT id FROM quiz_domains WHERE key = 'emocional')
+LEFT JOIN quiz_profiles qp ON qp.key = qpr.profile_key AND qp.domain_id = ed.id
 WHERE qpr.domain = 'emocional'
   AND qpr.algorithm_version = 'v1'
   AND es.score >= qpr.min_score
   AND es.score <= qpr.max_score
+ORDER BY qpr.min_score;
+
+-- Verificar se o perfil emocional_medio existe e está vinculado ao domínio emocional
+SELECT 
+  qp.id,
+  qp.key,
+  qp.name,
+  qp.domain_id,
+  qd.key as domain_key,
+  qd.name as domain_name
+FROM quiz_profiles qp
+LEFT JOIN quiz_domains qd ON qp.domain_id = qd.id
+WHERE qp.key = 'emocional_medio';
+
+-- Verificar todas as regras do domínio emocional
+SELECT 
+  qpr.profile_key,
+  qpr.min_score,
+  qpr.max_score,
+  qpr.domain,
+  qpr.algorithm_version,
+  qp.id as profile_exists,
+  qp.name as profile_name
+FROM quiz_profile_rules qpr
+LEFT JOIN quiz_profiles qp ON qp.key = qpr.profile_key
+WHERE qpr.domain = 'emocional'
+  AND qpr.algorithm_version = 'v1'
 ORDER BY qpr.min_score;
 

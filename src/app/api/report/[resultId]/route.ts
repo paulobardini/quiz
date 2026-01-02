@@ -245,7 +245,10 @@ export async function GET(
 
           if (rule?.profile_key) {
             console.log('[REPORT] Regra encontrada, profile_key:', rule.profile_key, 'range:', rule.min_score, '-', rule.max_score);
-            const { data: profile, error: profileError } = await supabase
+            
+            // Primeiro tentar buscar com domain_id
+            let profile = null;
+            const { data: profileWithDomain, error: profileError } = await supabase
               .from('quiz_profiles')
               .select('id, key, name')
               .eq('key', rule.profile_key)
@@ -254,22 +257,41 @@ export async function GET(
 
             if (profileError) console.error('[REPORT] Erro ao buscar perfil por key:', profileError);
 
-            if (profile) {
-              dominantProfile = profile;
-              console.log('[REPORT] Perfil encontrado no fallback:', profile.key);
+            if (profileWithDomain) {
+              profile = profileWithDomain;
+              console.log('[REPORT] Perfil encontrado com domain_id:', profile.key);
             } else {
               console.warn('[REPORT] Perfil não encontrado com key:', rule.profile_key, 'e domain_id:', domain.id);
-              // Tentar buscar sem domain_id como último recurso
-              const { data: profileFallback } = await supabase
+              // Tentar buscar sem domain_id
+              const { data: profileWithoutDomain } = await supabase
                 .from('quiz_profiles')
                 .select('id, key, name')
                 .eq('key', rule.profile_key)
                 .maybeSingle();
               
-              if (profileFallback) {
-                dominantProfile = profileFallback;
-                console.log('[REPORT] Perfil encontrado sem domain_id:', profileFallback.key);
+              if (profileWithoutDomain) {
+                profile = profileWithoutDomain;
+                console.log('[REPORT] Perfil encontrado sem domain_id:', profile.key);
+              } else {
+                console.error('[REPORT] ERRO: Perfil não existe na tabela quiz_profiles com key:', rule.profile_key);
+                // Se o perfil não existe, buscar qualquer perfil do domínio como último recurso
+                const { data: anyProfileFromDomain } = await supabase
+                  .from('quiz_profiles')
+                  .select('id, key, name')
+                  .eq('domain_id', domain.id)
+                  .limit(1)
+                  .maybeSingle();
+                
+                if (anyProfileFromDomain) {
+                  profile = anyProfileFromDomain;
+                  console.warn('[REPORT] Usando qualquer perfil do domínio como fallback:', profile.key);
+                }
               }
+            }
+            
+            if (profile) {
+              dominantProfile = profile;
+              console.log('[REPORT] Perfil definido:', profile.key, profile.name);
             }
           } else {
             console.warn('[REPORT] Regra não encontrada para domain:', primaryDomainKey, 'score:', roundedScore);
@@ -581,6 +603,7 @@ export async function GET(
           const deepdiveParagraphs = splitIntoParagraphs(paidDeepdive);
           const planParagraphs = splitIntoParagraphs(paidPlan);
           
+          // Criar estrutura completa de 7 blocos usando o conteúdo específico do perfil
           blocks = [
             {
               order: 1,
@@ -606,13 +629,59 @@ export async function GET(
             },
             {
               order: 3,
-              block_id: 'ajuste_pratico',
-              title: 'Ajuste Prático',
-              subtitle: 'O que você pode fazer',
+              block_id: 'origem',
+              title: 'A Origem do Padrão',
+              subtitle: 'Por que isso se repete, mesmo com esforço',
+              paragraphs: [
+                'Este padrão não surgiu por acaso. Ele se formou como uma resposta adaptativa a situações que você viveu no passado.',
+                'Mesmo quando você tenta fazer diferente, o padrão volta porque ele está profundamente enraizado na forma como seu cérebro processa decisões.',
+                'Entender a origem não é sobre encontrar culpados, mas sobre reconhecer que há uma lógica por trás do que parece irracional.'
+              ]
+            },
+            {
+              order: 4,
+              block_id: 'custo',
+              title: 'O Custo Invisível',
+              subtitle: 'O que esse padrão está te custando',
+              paragraphs: [
+                'Todo padrão tem um custo. Às vezes ele é visível, mas na maioria das vezes ele é sutil e se acumula ao longo do tempo.',
+                'Pode ser energia mental gasta em decisões que poderiam ser mais simples, oportunidades que você deixa passar ou relacionamentos que não se desenvolvem como poderiam.',
+                'O custo não precisa ser permanente. Com consciência e ajustes estratégicos, você pode reduzir significativamente esse impacto.'
+              ]
+            },
+            {
+              order: 5,
+              block_id: 'ajuste',
+              title: 'O Ajuste-Chave',
+              subtitle: 'O que muda a forma como você decide',
               paragraphs: planParagraphs.filter(p => p).length >= 3 ? planParagraphs : [
-                'Existem ajustes práticos que você pode fazer para trabalhar com esse padrão.',
-                'O importante é começar pequeno e ser consistente.',
-                'Cada pequeno ajuste contribui para uma mudança maior ao longo do tempo.'
+                'O ajuste não é sobre virar uma pessoa completamente diferente, mas sobre criar pequenas mudanças que geram grandes resultados.',
+                'Comece observando quando o padrão aparece e, em vez de reagir automaticamente, dê a si mesmo um momento para escolher conscientemente.',
+                'Esses pequenos ajustes, feitos consistentemente, vão transformar a forma como você toma decisões.'
+              ]
+            },
+            {
+              order: 6,
+              block_id: 'evitar',
+              title: 'O Que Evitar',
+              subtitle: 'Erros comuns de quem tem esse padrão',
+              paragraphs: [
+                'Um erro comum é tentar mudar tudo de uma vez ou acreditar que você precisa eliminar completamente esse padrão.',
+                'Outro erro é ignorar o padrão e esperar que ele desapareça sozinho, ou culpar circunstâncias externas por algo que está dentro do seu controle.',
+                'O caminho certo é reconhecer o padrão, entender sua função e fazer ajustes estratégicos quando ele não está servindo você.'
+              ]
+            },
+            {
+              order: 7,
+              block_id: 'desafio',
+              title: 'Desafio de 7 Dias',
+              subtitle: 'Experiência prática guiada',
+              paragraphs: [
+                'Este desafio existe para tirar a leitura do papel e transformar em movimento observável.',
+                'Dias 1 e 2: anote decisões já tomadas que você continua revisitando.',
+                'Dias 3 e 4: escolha uma e declare encerrada.',
+                'Dias 5 e 6: observe tentativas de reabertura e volte ao encerramento.',
+                'Dia 7: avalie a energia economizada.'
               ]
             }
           ];

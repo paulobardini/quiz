@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function QuizCard({
   question,
@@ -10,14 +10,25 @@ export default function QuizCard({
   isSubmitting = false,
 }) {
   const [selectedOptionId, setSelectedOptionId] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const progressPercentage = (progress.answered / progress.total) * 100;
 
+  // Reset do estado quando a pergunta muda
+  useEffect(() => {
+    setSelectedOptionId(null);
+    setIsProcessing(false);
+  }, [question?.id]);
+
   const handleOptionClick = (optionId) => {
-    if (isSubmitting) return;
+    // Prevenir cliques duplicados
+    if (isSubmitting || isProcessing) return;
+    
+    setIsProcessing(true);
     setSelectedOptionId(optionId);
+    
+    // Pequeno delay visual antes de processar
     setTimeout(() => {
       onAnswer(optionId);
-      setSelectedOptionId(null);
     }, 150);
   };
 
@@ -65,8 +76,8 @@ export default function QuizCard({
                 <button
                   key={option.id}
                   onClick={() => handleOptionClick(option.id)}
-                  disabled={isSubmitting}
-                  className={`quiz-option ${isSelected ? "quiz-option-selected" : ""} ${isSubmitting ? "quiz-option-disabled" : ""}`}
+                  disabled={isSubmitting || isProcessing}
+                  className={`quiz-option ${isSelected ? "quiz-option-selected" : ""} ${isSubmitting || isProcessing ? "quiz-option-disabled" : ""}`}
                 >
                   {option.label}
                 </button>
