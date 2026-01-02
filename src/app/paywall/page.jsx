@@ -159,9 +159,9 @@ export default function PaywallPage() {
       <section className="page-center paywall-center" style={{ padding: '24px', minHeight: '100vh', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflow: 'visible' }}>
         <div className="page-card" style={{ maxWidth: "640px", borderRadius: "26px", padding: "48px 40px", margin: '40px auto' }}>
           <div className="mb-10">
-            <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10" style={{ backdropFilter: "blur(8px)" }}>
+            <div className="w-2 h-2 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10" style={{ backdropFilter: "blur(8px)" }}>
               <svg
-                className="w-5 h-5 text-white"
+                className="w-1.5 h-1.5 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
