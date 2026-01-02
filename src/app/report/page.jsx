@@ -305,8 +305,9 @@ function ReportContent() {
     });
     
     // Converte quebras de linha em <br> para HTML
-    // Garantir que o texto dos dias tenha o mesmo tamanho do parágrafo (herda do elemento pai)
-    result = result.replace(/\n/g, '<br style="font-size: inherit;" />');
+    // Garantir que o texto dos dias tenha o mesmo tamanho do parágrafo
+    // Adicionar estilo inline para garantir tamanho consistente
+    result = result.replace(/\n/g, '<br style="font-size: 1em; line-height: inherit;" />');
     
     return result;
   };
