@@ -128,6 +128,12 @@ export async function GET(
     }
 
     console.log('[REPORT] Pagamento aprovado encontrado:', payment.order_id);
+    console.log('[REPORT] Result data:', {
+      hasDominantDomainId: !!result.dominant_domain_id,
+      hasDominantProfileId: !!result.dominant_profile_id,
+      hasScores: !!result.scores_json || !!result.scores,
+      hasPrimaryProfile: !!result.primary_profile,
+    });
 
     // Buscar domínio e perfil dominantes
     let dominantDomain: any = null;
@@ -135,43 +141,76 @@ export async function GET(
 
     if (result.dominant_domain_id && result.dominant_profile_id) {
       // Usar IDs da nova estrutura
-      const { data: domain } = await supabase
+      console.log('[REPORT] Tentando buscar usando IDs diretos:', {
+        domainId: result.dominant_domain_id,
+        profileId: result.dominant_profile_id,
+      });
+      
+      const { data: domain, error: domainError } = await supabase
         .from('quiz_domains')
         .select('id, key, name, short_label')
         .eq('id', result.dominant_domain_id)
-        .single();
+        .maybeSingle();
 
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('quiz_profiles')
         .select('id, key, name')
         .eq('id', result.dominant_profile_id)
-        .single();
+        .maybeSingle();
 
-      if (domain) dominantDomain = domain;
-      if (profile) dominantProfile = profile;
+      if (domainError) console.error('[REPORT] Erro ao buscar domínio:', domainError);
+      if (profileError) console.error('[REPORT] Erro ao buscar perfil:', profileError);
+
+      if (domain) {
+        dominantDomain = domain;
+        console.log('[REPORT] Domínio encontrado:', domain.key);
+      }
+      if (profile) {
+        dominantProfile = profile;
+        console.log('[REPORT] Perfil encontrado:', profile.key);
+      }
     }
 
     // Fallback: buscar da estrutura antiga se necessário
     if (!dominantDomain || !dominantProfile) {
+      console.log('[REPORT] Usando fallback para buscar perfil dominante');
       const scores = result.scores_json || result.scores || {};
-      const primaryDomainKey = result.primary_profile || Object.keys(scores)[0];
+      console.log('[REPORT] Scores disponíveis:', scores);
+      
+      // Determinar domínio primário: usar primary_profile se disponível, senão o domínio com maior score
+      let primaryDomainKey = result.primary_profile;
+      
+      if (!primaryDomainKey && Object.keys(scores).length > 0) {
+        // Encontrar domínio com maior score
+        const sortedDomains = Object.entries(scores)
+          .map(([key, value]: [string, any]) => ({ key, score: Number(value) || 0 }))
+          .sort((a, b) => b.score - a.score);
+        
+        primaryDomainKey = sortedDomains[0]?.key;
+        console.log('[REPORT] Domínio primário calculado pelo score:', primaryDomainKey);
+      }
       
       if (primaryDomainKey) {
-        const { data: domain } = await supabase
+        console.log('[REPORT] Buscando domínio por key:', primaryDomainKey);
+        const { data: domain, error: domainError } = await supabase
           .from('quiz_domains')
           .select('id, key, name, short_label')
           .eq('key', primaryDomainKey)
-          .single();
+          .maybeSingle();
+
+        if (domainError) console.error('[REPORT] Erro ao buscar domínio por key:', domainError);
 
         if (domain) {
           dominantDomain = domain;
+          console.log('[REPORT] Domínio encontrado no fallback:', domain.key);
           
           // Buscar perfil baseado no score
           const score = scores[primaryDomainKey] || 0;
           const roundedScore = Math.round(Math.max(0, Math.min(100, score)));
+          console.log('[REPORT] Score do domínio primário:', roundedScore);
           
-          // Buscar regra de perfil
-          const { data: rule } = await supabase
+          // Buscar regra de perfil - tentar com range mais amplo
+          const { data: rule, error: ruleError } = await supabase
             .from('quiz_profile_rules')
             .select('profile_key')
             .eq('domain', primaryDomainKey)
@@ -180,26 +219,57 @@ export async function GET(
             .lte('max_score', roundedScore)
             .maybeSingle();
 
+          if (ruleError) console.error('[REPORT] Erro ao buscar regra:', ruleError);
+
           if (rule?.profile_key) {
-            const { data: profile } = await supabase
+            console.log('[REPORT] Regra encontrada, profile_key:', rule.profile_key);
+            const { data: profile, error: profileError } = await supabase
               .from('quiz_profiles')
               .select('id, key, name')
               .eq('key', rule.profile_key)
               .eq('domain_id', domain.id)
-              .single();
+              .maybeSingle();
 
-            if (profile) dominantProfile = profile;
+            if (profileError) console.error('[REPORT] Erro ao buscar perfil por key:', profileError);
+
+            if (profile) {
+              dominantProfile = profile;
+              console.log('[REPORT] Perfil encontrado no fallback:', profile.key);
+            } else {
+              console.warn('[REPORT] Perfil não encontrado com key:', rule.profile_key, 'e domain_id:', domain.id);
+            }
+          } else {
+            console.warn('[REPORT] Regra não encontrada para domain:', primaryDomainKey, 'score:', roundedScore);
           }
+        } else {
+          console.warn('[REPORT] Domínio não encontrado com key:', primaryDomainKey);
         }
+      } else {
+        console.warn('[REPORT] Nenhum domínio primário identificado');
       }
     }
 
     if (!dominantDomain || !dominantProfile) {
+      console.error('[REPORT] ERRO: Não foi possível encontrar perfil dominante', {
+        hasDomain: !!dominantDomain,
+        hasProfile: !!dominantProfile,
+        resultData: {
+          dominant_domain_id: result.dominant_domain_id,
+          dominant_profile_id: result.dominant_profile_id,
+          primary_profile: result.primary_profile,
+          scores: result.scores_json || result.scores,
+        },
+      });
       return NextResponse.json(
         { error: 'Dados de perfil dominante não encontrados' },
         { status: 404 }
       );
     }
+
+    console.log('[REPORT] Perfil dominante encontrado:', {
+      domain: dominantDomain.key,
+      profile: dominantProfile.key,
+    });
 
     // Buscar conteúdo PREMIUM do perfil dominante (NÃO usar free_summary ou free_impact)
     let paidDeepdive = null;
