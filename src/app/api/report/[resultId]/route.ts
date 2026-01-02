@@ -500,25 +500,130 @@ export async function GET(
     // Ordenar por rank
     domainsWithLevels.sort((a, b) => a.rank - b.rank);
 
-    // Buscar UI copy para o relatório
-    const { data: uiCopy } = await supabase
-      .from('quiz_ui_copy')
-      .select('key, value')
-      .in('key', [
-        'report_title',
-        'report_subtitle',
-        'report_ethical_note',
-        'report_recap',
-        'report_closing',
-      ])
-      .eq('is_active', true);
+    // Preparar parágrafos para fallback
+    const splitIntoParagraphs = (text: string | null): string[] => {
+      if (!text) return ['', '', ''];
+      const sentences = text.split(/[.!?]\s+/).filter(s => s.trim());
+      const total = sentences.length;
+      if (total === 0) return ['', '', ''];
+      if (total <= 3) return [sentences.join('. '), '', ''];
+      
+      const p1End = Math.ceil(total / 3);
+      const p2End = Math.ceil((total * 2) / 3);
+      
+      return [
+        sentences.slice(0, p1End).join('. ') + (p1End < total ? '.' : ''),
+        sentences.slice(p1End, p2End).join('. ') + (p2End < total ? '.' : ''),
+        sentences.slice(p2End).join('. ') + (p2End < total ? '.' : '')
+      ];
+    };
 
-    const uiCopyMap: Record<string, string> = {};
-    if (uiCopy) {
-      uiCopy.forEach(item => {
-        uiCopyMap[item.key] = item.value;
-      });
+    const deepdiveParagraphs = splitIntoParagraphs(paidDeepdive);
+    const planParagraphs = splitIntoParagraphs(paidPlan);
+
+    // Buscar blocos do relatório premium
+    let blocks = [];
+    
+    if (dominantProfile.id && dominantProfile.id !== 'fallback') {
+      const { data: premiumContent } = await supabase
+        .from('premium_report_content')
+        .select('blocks')
+        .eq('profile_id', dominantProfile.id)
+        .eq('is_active', true)
+        .order('version', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (premiumContent?.blocks && Array.isArray(premiumContent.blocks)) {
+        blocks = premiumContent.blocks;
+      }
     }
+
+    // Fallback: se não encontrou blocos, criar estrutura básica
+    if (blocks.length === 0) {
+      blocks = [
+        {
+          order: 1,
+          block_id: 'abertura',
+          title: 'BLOCO 1 — ABERTURA',
+          subtitle: 'Validação e leitura inicial do padrão',
+          paragraphs: [
+            'Você identificou um padrão claro nas suas decisões. Isso não é um defeito, é uma forma de funcionar que se consolidou ao longo do tempo.',
+            'Este relatório vai te ajudar a entender por que esse padrão existe, como ele aparece no seu dia a dia e o que você pode fazer para ajustá-lo quando necessário.',
+            'O objetivo não é mudar quem você é, mas ampliar sua consciência sobre como você decide.'
+          ]
+        },
+        {
+          order: 2,
+          block_id: 'padrao_acao',
+          title: 'BLOCO 2 — O PADRÃO EM AÇÃO',
+          subtitle: 'Como isso aparece no seu dia a dia',
+          paragraphs: deepdiveParagraphs.filter(p => p).length >= 3 ? deepdiveParagraphs : [
+            'Este padrão se manifesta de forma consistente nas suas escolhas.',
+            'Ele aparece especialmente em situações que exigem decisão rápida.',
+            'Reconhecer esse padrão é o primeiro passo para ter mais controle.'
+          ]
+        },
+        {
+          order: 3,
+          block_id: 'origem',
+          title: 'BLOCO 3 — A ORIGEM DO PADRÃO',
+          subtitle: 'Por que isso se repete, mesmo com esforço',
+          paragraphs: [
+            'Este padrão não surgiu por acaso. Ele se formou como uma resposta adaptativa a situações que você viveu no passado.',
+            'Mesmo quando você tenta fazer diferente, o padrão volta porque ele está profundamente enraizado na forma como seu cérebro processa decisões.',
+            'Entender a origem não é sobre encontrar culpados, mas sobre reconhecer que há uma lógica por trás do que parece irracional.'
+          ]
+        },
+        {
+          order: 4,
+          block_id: 'custo',
+          title: 'BLOCO 4 — O CUSTO INVISÍVEL',
+          subtitle: 'O que esse padrão está te custando',
+          paragraphs: [
+            'Todo padrão tem um custo. Às vezes ele é visível, mas na maioria das vezes ele é sutil e se acumula ao longo do tempo.',
+            'Pode ser energia mental gasta em decisões que poderiam ser mais simples, oportunidades que você deixa passar ou relacionamentos que não se desenvolvem como poderiam.',
+            'O custo não precisa ser permanente. Com consciência e ajustes estratégicos, você pode reduzir significativamente esse impacto.'
+          ]
+        },
+        {
+          order: 5,
+          block_id: 'ajuste',
+          title: 'BLOCO 5 — O AJUSTE-CHAVE',
+          subtitle: 'O que muda a forma como você decide',
+          paragraphs: planParagraphs.filter(p => p).length >= 3 ? planParagraphs : [
+            'O ajuste não é sobre virar uma pessoa completamente diferente, mas sobre criar pequenas mudanças que geram grandes resultados.',
+            'Comece observando quando o padrão aparece e, em vez de reagir automaticamente, dê a si mesmo um momento para escolher conscientemente.',
+            'Esses pequenos ajustes, feitos consistentemente, vão transformar a forma como você toma decisões.'
+          ]
+        },
+        {
+          order: 6,
+          block_id: 'evitar',
+          title: 'BLOCO 6 — O QUE EVITAR',
+          subtitle: 'Erros comuns de quem tem esse padrão',
+          paragraphs: [
+            'Um erro comum é tentar mudar tudo de uma vez ou acreditar que você precisa eliminar completamente esse padrão.',
+            'Outro erro é ignorar o padrão e esperar que ele desapareça sozinho, ou culpar circunstâncias externas por algo que está dentro do seu controle.',
+            'O caminho certo é reconhecer o padrão, entender sua função e fazer ajustes estratégicos quando ele não está servindo você.'
+          ]
+        },
+        {
+          order: 7,
+          block_id: 'desafio',
+          title: 'BLOCO 7 — DESAFIO DE 7 DIAS',
+          subtitle: 'Experiência prática guiada',
+          paragraphs: [
+            'Durante os próximos 7 dias, observe uma decisão por dia onde você normalmente seguiria o padrão automático.',
+            'Antes de decidir, pare por 30 segundos e pergunte-se: esta decisão está alinhada com o que eu realmente quero agora?',
+            'Não precisa mudar a decisão, apenas observe. Essa prática de observação consciente já vai começar a criar mudanças.'
+          ]
+        }
+      ];
+    }
+
+    // Ordenar blocos por order
+    blocks.sort((a, b) => (a.order || 0) - (b.order || 0));
 
     return NextResponse.json({
       resultId,
@@ -526,19 +631,10 @@ export async function GET(
         domain: dominantDomain,
         profile: dominantProfile,
       },
-      paidContent: {
-        // paid_deepdive contém: por que se forma + onde trava
-        deepdive: paidDeepdive || 'Análise profunda não disponível.',
-        plan: paidPlan || 'Plano de ajuste não disponível.',
+      premium_report_content: {
+        blocks: blocks
       },
       domains: domainsWithLevels,
-      uiCopy: {
-        title: uiCopyMap.report_title || 'Leitura Completa do Seu Padrão de Decisão',
-        subtitle: uiCopyMap.report_subtitle || 'Este relatório aprofunda os padrões observados nas suas respostas.\nEle não faz diagnóstico nem rotula você.\nEle oferece leitura, consciência e direção.',
-        ethicalNote: uiCopyMap.report_ethical_note || '',
-        recap: uiCopyMap.report_recap || 'No resultado gratuito, você viu como esse padrão aparece nas decisões do dia a dia.\nAgora vamos aprofundar o que sustenta esse comportamento.',
-        closingText: uiCopyMap.report_closing || 'Consciência não muda tudo de uma vez.\nMas muda o ponto de partida.',
-      },
     });
   } catch (error) {
     console.error('Erro ao buscar relatório:', error);
