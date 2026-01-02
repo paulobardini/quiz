@@ -180,9 +180,53 @@ function ReportContent() {
     return null;
   };
 
-  const highlightKeyPhrases = (text) => {
+  const toCamelCase = (text) => {
+    if (!text) return text;
+    const str = String(text);
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
+  const removeBlockPrefix = (title) => {
+    if (!title) return title;
+    const str = String(title);
+    // Remove padrões como "Bloco 1:", "Bloco 2:", "Bloco 1 -", etc.
+    return str.replace(/^Bloco\s+\d+\s*[:\-]\s*/i, '').trim();
+  };
+
+  const breakDaysLines = (text) => {
     if (!text) return text;
     const textStr = String(text);
+    
+    // Quebra linha antes de "Dias" ou "Dia" seguidos de números
+    // Padrão: "Dias X e Y:" ou "Dia X:"
+    let result = textStr;
+    
+    // Primeiro, quebra antes de "Dias" seguido de números e "e" (ex: "Dias 1 e 2:")
+    result = result.replace(/([^\n])(Dias\s+\d+\s+e\s+\d+[:\-])/gi, '$1\n$2');
+    
+    // Depois, quebra antes de "Dia" seguido de número (mas não se já for parte de "Dias")
+    // Usa uma abordagem mais simples: quebra antes de "Dia" seguido de espaço e número
+    result = result.replace(/([^\n])(Dia\s+\d+[:\-])/gi, (match, before, dayPart) => {
+      // Verifica se não é parte de "Dias" (verificando os últimos caracteres antes)
+      const lastChars = before.slice(-5).toLowerCase();
+      if (lastChars.includes('dias')) {
+        return match; // Não quebra se for parte de "Dias"
+      }
+      return before + '\n' + dayPart;
+    });
+    
+    // Converte quebras de linha em <br> para HTML
+    result = result.replace(/\n/g, '<br />');
+    
+    return result;
+  };
+
+  const highlightKeyPhrases = (text) => {
+    if (!text) return text;
+    let textStr = String(text);
+    
+    // Primeiro, quebra linhas para Dias/Dia
+    textStr = breakDaysLines(textStr);
     
     // Frases-chave obrigatórias
     const keyPhrases = [
@@ -198,7 +242,7 @@ function ReportContent() {
     keyPhrases.forEach(phrase => {
       const regex = new RegExp(`(${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
       result = result.replace(regex, (match) => {
-        return `<span style="display: block; font-size: 1.15em; max-width: 85%; margin: 32px auto; line-height: 1.6; opacity: 0.95;">${match}</span>`;
+        return `<span style="display: block; font-size: 1.15em; max-width: 85%; margin: 32px auto; line-height: 1.6; opacity: 0.95; text-align: center;">${match}</span>`;
       });
     });
 
@@ -214,7 +258,7 @@ function ReportContent() {
 
   const getBlockVisualStyle = (blockOrder) => {
     const baseStyle = {
-      marginBottom: '96px'
+      marginBottom: '72px'
     };
 
     switch(blockOrder) {
@@ -345,7 +389,6 @@ function ReportContent() {
       return orderA - orderB;
     });
 
-    const profileName = report.profileName || extractProfileNameFromFirstParagraph(sortedBlocks);
 
     return (
       <main className="page-root result-page" style={{ 
@@ -396,66 +439,41 @@ function ReportContent() {
             {/* CAPA */}
             <section style={{
               width: '100%',
-              padding: '64px 0 48px 0',
-              marginBottom: '80px',
+              padding: '32px 0 32px 0',
+              marginBottom: '48px',
               textAlign: 'center',
               borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-              paddingBottom: '48px'
+              paddingBottom: '32px'
             }}>
               <h1 style={{ 
-                fontSize: '38px', 
-                fontWeight: 500, 
-                marginBottom: '24px',
+                fontSize: '36px', 
+                fontWeight: 400, 
+                marginBottom: '20px',
                 color: '#E5E5E5',
-                lineHeight: 1.3,
-                letterSpacing: '-0.5px'
+                lineHeight: 1.4,
+                letterSpacing: '-0.3px'
               }}>
-                {String(report.title || '')}
+                {toCamelCase(report.title || '')}
               </h1>
               
               <p style={{
-                fontSize: '17px',
-                opacity: 0.75,
-                marginBottom: '28px',
+                fontSize: '16px',
+                opacity: 0.7,
+                marginBottom: '0',
                 color: '#E5E5E5',
                 lineHeight: 1.6,
-                fontWeight: 300
+                fontWeight: 300,
+                maxWidth: '600px',
+                margin: '0 auto'
               }}>
-                Leitura completa para entender seu padrão e ajustar decisões com método.
-              </p>
-
-              {profileName && (
-                <div style={{
-                  display: 'inline-block',
-                  padding: '6px 14px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                  borderRadius: '4px',
-                  marginBottom: '24px',
-                  fontSize: '13px',
-                  fontWeight: 400,
-                  color: '#E5E5E5',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  letterSpacing: '0.3px'
-                }}>
-                  {String(profileName)}
-                </div>
-              )}
-
-              <p style={{
-                fontSize: '12px',
-                opacity: 0.6,
-                color: '#E5E5E5',
-                marginTop: '24px',
-                fontWeight: 300
-              }}>
-                Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
+                Leitura completa para entender seu padrão e ajustar decisões com método. Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
               </p>
             </section>
 
             {/* SUMÁRIO - Desktop (fixo lateral) e Mobile (colapsável) */}
             <div style={{
               position: 'sticky',
-              top: '120px',
+              top: '100px',
               alignSelf: 'flex-start',
               zIndex: 100,
               display: 'none'
@@ -467,14 +485,14 @@ function ReportContent() {
                 minWidth: '200px'
               }}>
                 <h3 style={{
-                  fontSize: '11px',
+                  fontSize: '12px',
                   fontWeight: 400,
-                  marginBottom: '20px',
+                  marginBottom: '16px',
                   color: '#E5E5E5',
                   textTransform: 'uppercase',
-                  letterSpacing: '1px',
-                  opacity: 0.5,
-                  fontFamily: 'serif'
+                  letterSpacing: '0.8px',
+                  opacity: 0.6,
+                  fontWeight: 300
                 }}>
                   Índice
                 </h3>
@@ -488,21 +506,21 @@ function ReportContent() {
                       }}
                       style={{
                         display: 'block',
-                        padding: '6px 0',
-                        fontSize: '13px',
+                        padding: '8px 0',
+                        fontSize: '14px',
                         color: '#E5E5E5',
-                        opacity: 0.65,
+                        opacity: 0.7,
                         cursor: 'pointer',
                         textDecoration: 'none',
                         borderBottom: 'none',
                         transition: 'opacity 0.2s',
                         fontWeight: 300,
-                        lineHeight: 1.5
+                        lineHeight: 1.6
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
-                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0.65'}
+                      onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
                     >
-                      {String(block.title || '')}
+                      {removeBlockPrefix(block.title || '')}
                     </a>
                   ))}
                 </nav>
@@ -512,7 +530,7 @@ function ReportContent() {
             {/* Botão Mobile para Sumário */}
             <div style={{
               display: 'block',
-              marginBottom: '48px'
+              marginBottom: '40px'
             }} className="table-of-contents-mobile">
               <button
                 onClick={() => setIsTableOfContentsOpen(!isTableOfContentsOpen)}
@@ -523,7 +541,7 @@ function ReportContent() {
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   borderRadius: '4px',
                   color: '#E5E5E5',
-                  fontSize: '13px',
+                  fontSize: '14px',
                   fontWeight: 300,
                   cursor: 'pointer',
                   textAlign: 'left',
@@ -549,17 +567,18 @@ function ReportContent() {
                       }}
                       style={{
                         display: 'block',
-                        padding: '8px 0',
-                        fontSize: '13px',
+                        padding: '10px 0',
+                        fontSize: '14px',
                         color: '#E5E5E5',
-                        opacity: 0.65,
+                        opacity: 0.7,
                         cursor: 'pointer',
                         textDecoration: 'none',
                         borderBottom: 'none',
-                        fontWeight: 300
+                        fontWeight: 300,
+                        lineHeight: 1.6
                       }}
                     >
-                      {String(block.title || '')}
+                      {removeBlockPrefix(block.title || '')}
                     </a>
                   ))}
                 </div>
@@ -590,7 +609,7 @@ function ReportContent() {
                         lineHeight: 1.4,
                         letterSpacing: '-0.3px'
                       }}>
-                        {String(block.title || '')}
+                        {removeBlockPrefix(block.title || '')}
                       </h2>
                       
                       {block.subtitle && (
@@ -625,11 +644,13 @@ function ReportContent() {
                                   dangerouslySetInnerHTML={{ __html: highlightedText }}
                                   style={{ 
                                     fontSize: isKeyPhrase ? '20px' : '17px', 
-                                    lineHeight: isKeyPhrase ? 1.7 : 1.75,
+                                    lineHeight: isKeyPhrase ? 1.7 : 1.8,
                                     opacity: isKeyPhrase ? 0.92 : 0.85,
-                                    marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '40px' : '28px') : '0',
+                                    marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '36px' : '24px') : '0',
                                     color: '#E5E5E5',
-                                    fontWeight: 300
+                                    fontWeight: 300,
+                                    transition: 'opacity 0.2s ease',
+                                    textAlign: 'justify'
                                   }}
                                 />
                               );
@@ -649,7 +670,7 @@ function ReportContent() {
                         lineHeight: 1.4,
                         letterSpacing: '-0.3px'
                       }}>
-                        {String(block.title || '')}
+                        {removeBlockPrefix(block.title || '')}
                       </h2>
                       
                       {block.subtitle && (
@@ -684,11 +705,13 @@ function ReportContent() {
                                   dangerouslySetInnerHTML={{ __html: highlightedText }}
                                   style={{ 
                                     fontSize: isKeyPhrase ? '20px' : '17px', 
-                                    lineHeight: isKeyPhrase ? 1.7 : 1.75,
+                                    lineHeight: isKeyPhrase ? 1.7 : 1.8,
                                     opacity: isKeyPhrase ? 0.92 : 0.85,
-                                    marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '40px' : '28px') : '0',
+                                    marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '36px' : '24px') : '0',
                                     color: '#E5E5E5',
-                                    fontWeight: 300
+                                    fontWeight: 300,
+                                    transition: 'opacity 0.2s ease',
+                                    textAlign: 'justify'
                                   }}
                                 />
                               );
@@ -701,7 +724,7 @@ function ReportContent() {
                   
                   {index < sortedBlocks.length - 1 && !hasCard && (
                     <div style={{
-                      marginTop: '64px',
+                      marginTop: '56px',
                       height: '1px',
                       backgroundColor: 'rgba(255, 255, 255, 0.08)',
                       width: '100%'
@@ -713,14 +736,14 @@ function ReportContent() {
 
             {/* RODAPÉ PREMIUM */}
             <section style={{ 
-              marginTop: '120px',
-              paddingTop: '64px',
+              marginTop: '80px',
+              paddingTop: '48px',
               borderTop: '1px solid rgba(255, 255, 255, 0.08)',
               textAlign: 'center'
             }}>
               <h2 style={{ 
-                fontSize: '24px', 
-                marginBottom: '20px',
+                fontSize: '22px', 
+                marginBottom: '16px',
                 color: '#E5E5E5',
                 fontWeight: 400,
                 letterSpacing: '-0.3px'
@@ -730,20 +753,20 @@ function ReportContent() {
               <p style={{ 
                 fontSize: '15px', 
                 opacity: 0.7, 
-                marginBottom: '40px',
+                marginBottom: '28px',
                 color: '#E5E5E5',
                 lineHeight: 1.6,
                 fontWeight: 300,
                 maxWidth: '500px',
-                margin: '0 auto 40px auto'
+                margin: '0 auto 28px auto'
               }}>
                 Este material foi criado para ser relido com calma. Você pode baixar a versão em PDF para acessar quando quiser.
               </p>
               <button
                 onClick={handleDownloadPDF}
                 style={{
-                  padding: '14px 28px',
-                  fontSize: '15px',
+                  padding: '12px 24px',
+                  fontSize: '14px',
                   fontWeight: 400,
                   backgroundColor: '#ffffff',
                   color: '#000000',
@@ -752,11 +775,11 @@ function ReportContent() {
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '10px',
+                  gap: '8px',
                   letterSpacing: '0.3px'
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.8 }}>
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.8 }}>
                   <path d="M17.5 12.5V15.8333C17.5 16.2754 17.3244 16.6993 17.0118 17.0118C16.6993 17.3244 16.2754 17.5 15.8333 17.5H4.16667C3.72464 17.5 3.30072 17.3244 2.98816 17.0118C2.67559 16.6993 2.5 16.2754 2.5 15.8333V12.5M13.3333 8.33333L10 11.6667M10 11.6667L6.66667 8.33333M10 11.6667V2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 Baixar PDF
@@ -765,7 +788,7 @@ function ReportContent() {
                 fontSize: '12px',
                 opacity: 0.6,
                 color: '#E5E5E5',
-                marginTop: '20px',
+                marginTop: '16px',
                 fontWeight: 300
               }}>
                 Recomendado para leitura offline
@@ -803,7 +826,6 @@ function ReportContent() {
   // Fallback para estrutura antiga (se não veio de premium_report_content)
   const blocks = report.premium_report_content?.blocks || [];
   const sortedBlocksFallback = [...blocks].sort((a, b) => (a.order || 0) - (b.order || 0));
-  const profileNameFallback = report.profileName || extractProfileNameFromFirstParagraph(sortedBlocksFallback);
 
   return (
     <main className="page-root result-page" style={{ 
@@ -854,59 +876,34 @@ function ReportContent() {
           {/* CAPA */}
           <section style={{
             width: '100%',
-            padding: '64px 0 48px 0',
+            padding: '32px 0 40px 0',
             marginBottom: '80px',
             textAlign: 'center',
             borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            paddingBottom: '48px'
+            paddingBottom: '40px'
           }}>
             <h1 style={{ 
-              fontSize: '38px', 
-              fontWeight: 500, 
-              marginBottom: '24px',
+              fontSize: '36px', 
+              fontWeight: 400, 
+              marginBottom: '20px',
               color: '#E5E5E5',
-              lineHeight: 1.3,
-              letterSpacing: '-0.5px'
+              lineHeight: 1.4,
+              letterSpacing: '-0.3px'
             }}>
-              {String(report.title || 'Relatório Premium')}
+              {toCamelCase(report.title || 'Relatório Premium')}
             </h1>
             
             <p style={{
-              fontSize: '17px',
-              opacity: 0.75,
-              marginBottom: '28px',
+              fontSize: '16px',
+              opacity: 0.7,
+              marginBottom: '0',
               color: '#E5E5E5',
               lineHeight: 1.6,
-              fontWeight: 300
+              fontWeight: 300,
+              maxWidth: '600px',
+              margin: '0 auto'
             }}>
-              Leitura completa para entender seu padrão e ajustar decisões com método.
-            </p>
-
-            {profileNameFallback && (
-              <div style={{
-                display: 'inline-block',
-                padding: '6px 14px',
-                backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                borderRadius: '4px',
-                marginBottom: '24px',
-                fontSize: '13px',
-                fontWeight: 400,
-                color: '#E5E5E5',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                letterSpacing: '0.3px'
-              }}>
-                {String(profileNameFallback)}
-              </div>
-            )}
-
-            <p style={{
-              fontSize: '12px',
-              opacity: 0.6,
-              color: '#E5E5E5',
-              marginTop: '24px',
-              fontWeight: 300
-            }}>
-              Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
+              Leitura completa para entender seu padrão e ajustar decisões com método. Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
             </p>
           </section>
 
@@ -925,14 +922,14 @@ function ReportContent() {
               minWidth: '200px'
             }}>
               <h3 style={{
-                fontSize: '11px',
+                fontSize: '12px',
                 fontWeight: 400,
-                marginBottom: '20px',
+                marginBottom: '16px',
                 color: '#E5E5E5',
                 textTransform: 'uppercase',
-                letterSpacing: '1px',
-                opacity: 0.5,
-                fontFamily: 'serif'
+                letterSpacing: '0.8px',
+                opacity: 0.6,
+                fontWeight: 300
               }}>
                 Índice
               </h3>
@@ -946,19 +943,19 @@ function ReportContent() {
                     }}
                     style={{
                       display: 'block',
-                      padding: '6px 0',
-                      fontSize: '13px',
+                      padding: '8px 0',
+                      fontSize: '14px',
                       color: '#E5E5E5',
-                      opacity: 0.65,
+                      opacity: 0.7,
                       cursor: 'pointer',
                       textDecoration: 'none',
                       borderBottom: 'none',
                       transition: 'opacity 0.2s',
                       fontWeight: 300,
-                      lineHeight: 1.5
+                      lineHeight: 1.6
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
-                    onMouseLeave={(e) => e.currentTarget.style.opacity = '0.65'}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
                   >
                     {String(block.title || '')}
                   </a>
@@ -981,7 +978,7 @@ function ReportContent() {
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '4px',
                 color: '#E5E5E5',
-                fontSize: '13px',
+                fontSize: '14px',
                 fontWeight: 300,
                 cursor: 'pointer',
                 textAlign: 'left',
@@ -1007,14 +1004,15 @@ function ReportContent() {
                     }}
                     style={{
                       display: 'block',
-                      padding: '8px 0',
-                      fontSize: '13px',
+                      padding: '10px 0',
+                      fontSize: '14px',
                       color: '#E5E5E5',
-                      opacity: 0.65,
+                      opacity: 0.7,
                       cursor: 'pointer',
                       textDecoration: 'none',
                       borderBottom: 'none',
-                      fontWeight: 300
+                      fontWeight: 300,
+                      lineHeight: 1.6
                     }}
                   >
                     {String(block.title || '')}
@@ -1048,7 +1046,7 @@ function ReportContent() {
                         lineHeight: 1.4,
                         letterSpacing: '-0.3px'
                       }}>
-                        {String(block.title || '')}
+                        {removeBlockPrefix(block.title || '')}
                       </h2>
                       
                       {block.subtitle && (
@@ -1083,11 +1081,13 @@ function ReportContent() {
                                   dangerouslySetInnerHTML={{ __html: highlightedText }}
                                   style={{ 
                                     fontSize: isKeyPhrase ? '20px' : '17px', 
-                                    lineHeight: isKeyPhrase ? 1.7 : 1.75,
+                                    lineHeight: isKeyPhrase ? 1.7 : 1.8,
                                     opacity: isKeyPhrase ? 0.92 : 0.85,
-                                    marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '40px' : '28px') : '0',
+                                    marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '36px' : '24px') : '0',
                                     color: '#E5E5E5',
-                                    fontWeight: 300
+                                    fontWeight: 300,
+                                    transition: 'opacity 0.2s ease',
+                                    textAlign: 'justify'
                                   }}
                                 />
                               );
@@ -1107,7 +1107,7 @@ function ReportContent() {
                         lineHeight: 1.4,
                         letterSpacing: '-0.3px'
                       }}>
-                        {String(block.title || '')}
+                        {removeBlockPrefix(block.title || '')}
                       </h2>
                       
                       {block.subtitle && (
@@ -1142,11 +1142,13 @@ function ReportContent() {
                                   dangerouslySetInnerHTML={{ __html: highlightedText }}
                                   style={{ 
                                     fontSize: isKeyPhrase ? '20px' : '17px', 
-                                    lineHeight: isKeyPhrase ? 1.7 : 1.75,
+                                    lineHeight: isKeyPhrase ? 1.7 : 1.8,
                                     opacity: isKeyPhrase ? 0.92 : 0.85,
-                                    marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '40px' : '28px') : '0',
+                                    marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '36px' : '24px') : '0',
                                     color: '#E5E5E5',
-                                    fontWeight: 300
+                                    fontWeight: 300,
+                                    transition: 'opacity 0.2s ease',
+                                    textAlign: 'justify'
                                   }}
                                 />
                               );
@@ -1159,7 +1161,7 @@ function ReportContent() {
                   
                   {index < sortedBlocksFallback.length - 1 && !hasCard && (
                     <div style={{
-                      marginTop: '64px',
+                      marginTop: '56px',
                       height: '1px',
                       backgroundColor: 'rgba(255, 255, 255, 0.08)',
                       width: '100%'
@@ -1171,14 +1173,14 @@ function ReportContent() {
 
           {/* RODAPÉ PREMIUM */}
           <section style={{ 
-            marginTop: '120px',
-            paddingTop: '64px',
+            marginTop: '80px',
+            paddingTop: '48px',
             borderTop: '1px solid rgba(255, 255, 255, 0.08)',
             textAlign: 'center'
           }}>
             <h2 style={{ 
-              fontSize: '24px', 
-              marginBottom: '20px',
+              fontSize: '22px', 
+              marginBottom: '16px',
               color: '#E5E5E5',
               fontWeight: 400,
               letterSpacing: '-0.3px'
@@ -1188,20 +1190,20 @@ function ReportContent() {
             <p style={{ 
               fontSize: '15px', 
               opacity: 0.7, 
-              marginBottom: '40px',
+              marginBottom: '28px',
               color: '#E5E5E5',
               lineHeight: 1.6,
               fontWeight: 300,
               maxWidth: '500px',
-              margin: '0 auto 40px auto'
+              margin: '0 auto 28px auto'
             }}>
               Este material foi criado para ser relido com calma. Você pode baixar a versão em PDF para acessar quando quiser.
             </p>
             <button
               onClick={handleDownloadPDF}
               style={{
-                padding: '14px 28px',
-                fontSize: '15px',
+                padding: '12px 24px',
+                fontSize: '14px',
                 fontWeight: 400,
                 backgroundColor: '#ffffff',
                 color: '#000000',
@@ -1210,11 +1212,11 @@ function ReportContent() {
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '8px',
                 letterSpacing: '0.3px'
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.8 }}>
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.8 }}>
                 <path d="M17.5 12.5V15.8333C17.5 16.2754 17.3244 16.6993 17.0118 17.0118C16.6993 17.3244 16.2754 17.5 15.8333 17.5H4.16667C3.72464 17.5 3.30072 17.3244 2.98816 17.0118C2.67559 16.6993 2.5 16.2754 2.5 15.8333V12.5M13.3333 8.33333L10 11.6667M10 11.6667L6.66667 8.33333M10 11.6667V2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               Baixar PDF
@@ -1223,7 +1225,7 @@ function ReportContent() {
               fontSize: '12px',
               opacity: 0.6,
               color: '#E5E5E5',
-              marginTop: '20px',
+              marginTop: '16px',
               fontWeight: 300
             }}>
               Recomendado para leitura offline
