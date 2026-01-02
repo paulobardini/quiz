@@ -229,12 +229,23 @@ function ReportContent() {
     // Primeiro, quebra linhas para Dias/Dia
     textStr = breakDaysLines(textStr);
     
-    // Tratamento especial para "Consciência não muda tudo de uma vez. Mas muda o ponto de partida."
-    // Deve ficar junto, em linha única, destacado
-    const conscienciaPattern = /(Consciência não muda tudo de uma vez\.\s*Mas muda o ponto de partida\.)/gi;
-    textStr = textStr.replace(conscienciaPattern, (match) => {
-      return `<span style="display: block; font-size: 1.15em; max-width: 85%; margin: 32px auto; line-height: 1.6; opacity: 0.95; text-align: center; white-space: nowrap;">${match}</span>`;
-    });
+    // Tratamento especial para "Consciência não muda tudo de uma vez. Mas muda o ponto de partida. E isso já altera o seu futuro."
+    // Deve ficar junto, destacado, mas permitindo quebra de linha natural
+    // Primeiro tenta o padrão completo com as três frases
+    const conscienciaPatternFull = /(Consciência não muda tudo de uma vez\.\s*Mas muda o ponto de partida\.\s*E isso já altera o seu futuro\.)/gi;
+    const hasFullPattern = conscienciaPatternFull.test(textStr);
+    
+    if (hasFullPattern) {
+      textStr = textStr.replace(conscienciaPatternFull, (match) => {
+        return `<span style="display: block; font-size: 1.15em; max-width: 85%; margin: 32px auto 24px auto; line-height: 1.6; opacity: 0.95; text-align: center;">${match}</span>`;
+      });
+    } else {
+      // Se não encontrou o padrão completo, tentar apenas as duas primeiras frases
+      const conscienciaPattern2 = /(Consciência não muda tudo de uma vez\.\s*Mas muda o ponto de partida\.)/gi;
+      textStr = textStr.replace(conscienciaPattern2, (match) => {
+        return `<span style="display: block; font-size: 1.15em; max-width: 85%; margin: 32px auto 24px auto; line-height: 1.6; opacity: 0.95; text-align: center;">${match}</span>`;
+      });
+    }
     
     // Frases-chave obrigatórias (exceto a de consciência que já foi tratada)
     const keyPhrases = [
@@ -256,10 +267,8 @@ function ReportContent() {
   };
 
   const shouldHaveCard = (blockOrder) => {
-    // Bloco 4: card pesado
-    // Bloco 5: card mais claro
-    // Bloco 7: card de fechamento
-    return blockOrder === 4 || blockOrder === 5 || blockOrder === 7;
+    // Removidos todos os cards
+    return false;
   };
 
   const getBlockVisualStyle = (blockOrder) => {
@@ -380,11 +389,11 @@ function ReportContent() {
       <main className="page-root result-page" style={{ 
         position: 'relative',
         minHeight: '100vh',
-        backgroundColor: '#0F0F0F',
+        backgroundColor: '#121212',
         background: `
-          radial-gradient(circle at 20% 50%, rgba(18, 18, 18, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 80% 80%, rgba(14, 14, 14, 0.3) 0%, transparent 50%),
-          #0F0F0F
+          radial-gradient(circle at 20% 50%, rgba(20, 20, 20, 0.2) 0%, transparent 50%),
+          radial-gradient(circle at 80% 80%, rgba(18, 18, 18, 0.2) 0%, transparent 50%),
+          #121212
         `,
         backgroundSize: '100% 100%',
         backgroundAttachment: 'fixed'
@@ -403,7 +412,7 @@ function ReportContent() {
           backgroundSize: '100px 100px',
           pointerEvents: 'none',
           zIndex: 1,
-          opacity: 0.4
+          opacity: 0.2
         }} />
         
         <div style={{ 
@@ -798,12 +807,13 @@ function ReportContent() {
                   backgroundColor: '#ffffff',
                   color: '#000000',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderRadius: '12px',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '10px',
-                  letterSpacing: '0.3px'
+                  letterSpacing: '0.3px',
+                  marginTop: '8px'
                 }}
               >
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.8 }}>
@@ -858,11 +868,11 @@ function ReportContent() {
     <main className="page-root result-page" style={{ 
       position: 'relative',
       minHeight: '100vh',
-      backgroundColor: '#0F0F0F',
+      backgroundColor: '#121212',
       background: `
-        radial-gradient(circle at 20% 50%, rgba(18, 18, 18, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(14, 14, 14, 0.3) 0%, transparent 50%),
-        #0F0F0F
+        radial-gradient(circle at 20% 50%, rgba(20, 20, 20, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(18, 18, 18, 0.2) 0%, transparent 50%),
+        #121212
       `,
       backgroundSize: '100% 100%',
       backgroundAttachment: 'fixed'
@@ -881,7 +891,7 @@ function ReportContent() {
         backgroundSize: '100px 100px',
         pointerEvents: 'none',
         zIndex: 1,
-        opacity: 0.4
+        opacity: 0.2
       }} />
       
       <div style={{ 
@@ -1276,12 +1286,13 @@ function ReportContent() {
                 backgroundColor: '#ffffff',
                 color: '#000000',
                 border: 'none',
-                borderRadius: '4px',
+                borderRadius: '12px',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '10px',
-                letterSpacing: '0.3px'
+                letterSpacing: '0.3px',
+                marginTop: '8px'
               }}
             >
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.8 }}>
