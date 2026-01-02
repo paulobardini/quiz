@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
 import { buildFreeReport, buildPaidReport } from '@/lib/quiz/reportBuilder';
 
+export const runtime = 'nodejs';
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
