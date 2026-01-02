@@ -48,28 +48,21 @@ export function buildKiwifyCheckoutUrl(
   sessionId: string | null,
   productUrl: string
 ): string {
-  console.log('[KIWIFY] Construindo URL do checkout...');
-  console.log('[KIWIFY] SessionId:', sessionId);
-  console.log('[KIWIFY] ProductUrl:', productUrl);
-  
   if (!productUrl || productUrl.trim() === '') {
     throw new Error('ProductUrl não pode ser vazio');
   }
 
   const trackingParams = getTrackingParams();
-  console.log('[KIWIFY] Parâmetros de tracking da URL:', trackingParams);
   
   // s1 sempre será o quiz_session_id
   if (sessionId) {
     trackingParams.s1 = sessionId;
-    console.log('[KIWIFY] s1 definido como sessionId:', sessionId);
   }
 
   let finalUrl: string;
 
   // Se productUrl já é uma URL completa, usar diretamente
   if (productUrl.startsWith('http://') || productUrl.startsWith('https://')) {
-    console.log('[KIWIFY] URL completa detectada, usando diretamente');
     finalUrl = productUrl;
   } else {
     // Se é um slug, construir URL do checkout Kiwify
@@ -77,7 +70,6 @@ export function buildKiwifyCheckoutUrl(
     const baseUrl = productUrl.startsWith('/')
       ? `https://pay.kiwify.com.br${productUrl}`
       : `https://pay.kiwify.com.br/${productUrl}`;
-    console.log('[KIWIFY] Construindo URL a partir do slug:', baseUrl);
     finalUrl = baseUrl;
   }
 
@@ -91,11 +83,9 @@ export function buildKiwifyCheckoutUrl(
     const baseUrl = window.location.origin;
     const returnUrl = `${baseUrl}/payment/success`;
     url.searchParams.set('return_url', returnUrl);
-    console.log('[KIWIFY] URL de retorno configurada:', returnUrl);
   }
 
   const finalUrlString = url.toString();
-  console.log('[KIWIFY] URL final do checkout:', finalUrlString);
   
   return finalUrlString;
 }
@@ -109,49 +99,28 @@ export function redirectToKiwifyCheckout(
   sessionId: string | null,
   productUrl: string
 ): void {
-  console.log('[KIWIFY] ===== redirectToKiwifyCheckout CHAMADO =====');
-  console.log('[KIWIFY] SessionId:', sessionId);
-  console.log('[KIWIFY] ProductUrl:', productUrl);
-  console.log('[KIWIFY] typeof window:', typeof window);
-  console.log('[KIWIFY] window.location existe?', typeof window !== 'undefined' && !!window.location);
-  
   try {
     const checkoutUrl = buildKiwifyCheckoutUrl(sessionId, productUrl);
-    console.log('[KIWIFY] ✅ URL construída com sucesso:', checkoutUrl);
-    console.log('[KIWIFY] Tentando redirecionar...');
     
     if (typeof window === 'undefined') {
-      console.error('[KIWIFY] ❌ window não está disponível (SSR)');
       throw new Error('window não está disponível');
     }
     
     if (!window.location) {
-      console.error('[KIWIFY] ❌ window.location não está disponível');
       throw new Error('window.location não está disponível');
     }
-    
-    console.log('[KIWIFY] ✅ window.location disponível, fazendo redirect...');
-    console.log('[KIWIFY] URL atual:', window.location.href);
-    console.log('[KIWIFY] URL destino:', checkoutUrl);
     
     // Forçar o redirecionamento
     window.location.href = checkoutUrl;
     
-    console.log('[KIWIFY] ✅ window.location.href definido');
-    
     // Fallback: tentar também com replace após um pequeno delay
     setTimeout(() => {
       if (window.location.href !== checkoutUrl) {
-        console.warn('[KIWIFY] ⚠️ Redirect não funcionou, tentando com replace...');
         window.location.replace(checkoutUrl);
       }
     }, 100);
     
   } catch (error) {
-    console.error('[KIWIFY] ❌ Erro ao redirecionar:', error);
-    if (error instanceof Error) {
-      console.error('[KIWIFY] Stack trace:', error.stack);
-    }
     throw error;
   }
 }

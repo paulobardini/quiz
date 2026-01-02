@@ -18,11 +18,8 @@ const LP_BG_URL =
 const KIWIFY_PRODUCT_URL =
   process.env.NEXT_PUBLIC_KIWIFY_PRODUCT_URL || "";
 
-// Log para debug (será removido em produção se necessário)
+// Habilitar scroll IMEDIATAMENTE quando o módulo carregar
 if (typeof window !== 'undefined') {
-  console.log('[PAYWALL] KIWIFY_PRODUCT_URL carregada:', KIWIFY_PRODUCT_URL ? 'SIM' : 'NÃO');
-  
-  // Habilitar scroll IMEDIATAMENTE quando o módulo carregar
   const html = document.documentElement;
   const body = document.body;
   
@@ -39,8 +36,6 @@ if (typeof window !== 'undefined') {
   body.style.bottom = "auto";
   html.style.overflow = "auto";
   html.style.height = "auto";
-  
-  console.log('[PAYWALL] Scroll habilitado imediatamente no carregamento do módulo');
 }
 
 export default function PaywallPage() {
@@ -70,14 +65,8 @@ export default function PaywallPage() {
     html.style.overflow = "auto";
     html.style.height = "auto";
     
-    console.log('[PAYWALL] useEffect: Scroll garantido');
-    
     const sessionId = getSessionId();
     const resultId = getResultId();
-    
-    console.log('[PAYWALL] Componente montado');
-    console.log('[PAYWALL] SessionId:', sessionId);
-    console.log('[PAYWALL] ResultId:', resultId);
     
     if (!sessionId && !resultId) {
       // Incrementa o contador antes de verificar se deve limpar
@@ -101,13 +90,8 @@ export default function PaywallPage() {
     setTimeout(() => {
       const button = document.querySelector('.page-button');
       if (button) {
-        console.log('[PAYWALL] ✅ Botão encontrado no DOM');
-        console.log('[PAYWALL] Botão visível?', button.offsetParent !== null);
-        console.log('[PAYWALL] Botão posição:', button.getBoundingClientRect());
-        
         // Adicionar event listener direto no DOM como fallback
         const handleClickDirect = (e) => {
-          console.log('[PAYWALL] ===== CLIQUE CAPTURADO VIA EVENT LISTENER DIRETO =====');
           e.preventDefault();
           e.stopPropagation();
           handleCheckout();
@@ -117,11 +101,9 @@ export default function PaywallPage() {
         button.removeEventListener('click', handleClickDirect);
         // Adicionar novo listener
         button.addEventListener('click', handleClickDirect, { capture: true, passive: false });
-        console.log('[PAYWALL] ✅ Event listener direto adicionado ao botão');
         
         // Também adicionar para touch events
         const handleTouchDirect = (e) => {
-          console.log('[PAYWALL] ===== TOUCH CAPTURADO VIA EVENT LISTENER DIRETO =====');
           e.preventDefault();
           e.stopPropagation();
           handleCheckout();
@@ -129,16 +111,6 @@ export default function PaywallPage() {
         
         button.removeEventListener('touchend', handleTouchDirect);
         button.addEventListener('touchend', handleTouchDirect, { capture: true, passive: false });
-        console.log('[PAYWALL] ✅ Touch event listener direto adicionado ao botão');
-        
-        // Verificar se há elementos cobrindo o botão
-        const rect = button.getBoundingClientRect();
-        const elementAtPoint = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
-        console.log('[PAYWALL] Elemento no centro do botão:', elementAtPoint);
-        console.log('[PAYWALL] É o próprio botão?', elementAtPoint === button || button.contains(elementAtPoint));
-        
-      } else {
-        console.error('[PAYWALL] ❌ Botão NÃO encontrado no DOM!');
       }
     }, 100);
     
@@ -162,28 +134,17 @@ export default function PaywallPage() {
   }, [router]);
 
   const handleCheckout = () => {
-    console.log('[PAYWALL] ===== handleCheckout CHAMADO =====');
     const sessionId = getSessionId();
     
-    console.log('[PAYWALL] Iniciando checkout...');
-    console.log('[PAYWALL] SessionId:', sessionId);
-    console.log('[PAYWALL] KIWIFY_PRODUCT_URL:', KIWIFY_PRODUCT_URL);
-    console.log('[PAYWALL] Tipo de KIWIFY_PRODUCT_URL:', typeof KIWIFY_PRODUCT_URL);
-    console.log('[PAYWALL] Tamanho de KIWIFY_PRODUCT_URL:', KIWIFY_PRODUCT_URL?.length);
-    
     if (!KIWIFY_PRODUCT_URL || KIWIFY_PRODUCT_URL.trim() === '') {
-      console.error("[PAYWALL] ❌ KIWIFY_PRODUCT_URL não configurado ou vazio");
       alert("Erro: URL do checkout não configurada. Entre em contato com o suporte.");
       return;
     }
 
     try {
       // Redireciona para o checkout da Kiwify com tracking
-      console.log('[PAYWALL] ✅ Redirecionando para checkout...');
       redirectToKiwifyCheckout(sessionId, KIWIFY_PRODUCT_URL);
     } catch (error) {
-      console.error("[PAYWALL] ❌ Erro ao redirecionar para checkout:", error);
-      console.error("[PAYWALL] Stack trace:", error instanceof Error ? error.stack : 'N/A');
       alert("Erro ao redirecionar para o checkout. Tente novamente.");
     }
   };
@@ -303,37 +264,24 @@ export default function PaywallPage() {
 
           <div style={{ marginTop: '24px', position: 'relative', zIndex: 1000 }}>
             <button
-              ref={(el) => {
-                if (el) {
-                  console.log('[PAYWALL] Botão renderizado, ref callback chamado');
-                  console.log('[PAYWALL] Botão elemento:', el);
-                  console.log('[PAYWALL] Botão visível?', el.offsetParent !== null);
-                }
-              }}
               onClick={(e) => {
-                console.log('[PAYWALL] ===== BOTÃO CLICADO (onClick) =====');
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('[PAYWALL] Evento capturado, chamando handleCheckout...');
                 handleCheckout();
               }}
               onMouseDown={(e) => {
-                console.log('[PAYWALL] ===== Mouse down no botão =====');
                 e.preventDefault();
                 e.stopPropagation();
               }}
               onMouseUp={(e) => {
-                console.log('[PAYWALL] ===== Mouse up no botão =====');
                 e.preventDefault();
                 e.stopPropagation();
               }}
               onTouchStart={(e) => {
-                console.log('[PAYWALL] ===== Touch start no botão =====');
                 e.preventDefault();
                 e.stopPropagation();
               }}
               onTouchEnd={(e) => {
-                console.log('[PAYWALL] ===== Touch end no botão =====');
                 e.preventDefault();
                 e.stopPropagation();
                 handleCheckout();

@@ -35,47 +35,39 @@ export default function PaymentSuccessPage() {
         const urlParams = new URLSearchParams(window.location.search);
         const s1 = urlParams.get('s1');
         
-        console.log('[PAYMENT SUCCESS] Parâmetros:', { s1 });
-        
         // Tentar obter IDs do storage
         const sessionId = getSessionId();
         const resultId = getResultId();
-        
-        console.log('[PAYMENT SUCCESS] Storage - sessionId:', sessionId, 'resultId:', resultId);
         
         // Usar s1 da URL se disponível, senão usar sessionId do storage
         const trackingSessionId = s1 || sessionId;
         
         // Se tem resultId, redirecionar direto
         if (resultId) {
-          console.log('[PAYMENT SUCCESS] Redirecionando com resultId:', resultId);
           window.location.replace(`/report?resultId=${resultId}`);
           return;
         }
         
         // Se tem sessionId, buscar resultId
         if (trackingSessionId) {
-          console.log('[PAYMENT SUCCESS] Buscando resultId para sessionId:', trackingSessionId);
           try {
             const response = await fetch(`/api/session/result-id?sessionId=${trackingSessionId}`);
             if (response.ok) {
               const data = await response.json();
               if (data.resultId) {
-                console.log('[PAYMENT SUCCESS] ResultId encontrado:', data.resultId);
                 window.location.replace(`/report?resultId=${data.resultId}`);
                 return;
               }
             }
           } catch (err) {
-            console.error('[PAYMENT SUCCESS] Erro ao buscar resultId:', err);
+            // Erro silencioso
           }
         }
         
         // Fallback: redirecionar para /report sem parâmetros
-        console.log('[PAYMENT SUCCESS] Redirecionando para /report (fallback)');
         window.location.replace('/report');
       } catch (error) {
-        console.error('[PAYMENT SUCCESS] Erro:', error);
+        // Erro silencioso, redirecionar mesmo assim
         // Em caso de erro, redirecionar mesmo assim
         if (typeof window !== 'undefined') {
           window.location.replace('/report');
