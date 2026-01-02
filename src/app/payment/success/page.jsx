@@ -90,6 +90,33 @@ export default function PaymentSuccessPage() {
           cache: 'no-store',
         });
 
+        console.log('[PAYMENT SUCCESS] Response status:', response.status, response.statusText);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[PAYMENT SUCCESS] Erro na resposta:', response.status, errorText);
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { error: errorText };
+          }
+          
+          // Se for erro 500, tentar novamente após alguns segundos
+          if (response.status === 500) {
+            setStatus('pending');
+            setMessage('Erro temporário ao verificar pagamento. Tentando novamente...');
+            setTimeout(() => {
+              checkPayment();
+            }, 3000);
+            return;
+          }
+          
+          setStatus('error');
+          setMessage(errorData.message || errorData.error || 'Erro ao verificar pagamento. Tente novamente mais tarde.');
+          return;
+        }
+
         const data = await response.json();
         console.log('[PAYMENT SUCCESS] Resposta da verificação:', data);
 

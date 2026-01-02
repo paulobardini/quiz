@@ -22,19 +22,25 @@ export async function GET(request: Request) {
 
     const supabase = supabaseServer();
 
-    let query = supabase
-      .from('kiwify_orders')
-      .select('order_id, status, approved_date, s1, customer_email')
-      .order('updated_at', { ascending: false })
-      .limit(1);
-
+    let query;
+    
     // Buscar por order_id (prioridade)
     if (orderId) {
-      query = query.eq('order_id', orderId);
+      query = supabase
+        .from('kiwify_orders')
+        .select('order_id, status, approved_date, s1, customer_email')
+        .eq('order_id', orderId)
+        .order('updated_at', { ascending: false })
+        .limit(10);
     } 
     // Se não tem order_id, buscar por s1 (session_id)
     else if (sessionId) {
-      query = query.eq('s1', sessionId);
+      query = supabase
+        .from('kiwify_orders')
+        .select('order_id, status, approved_date, s1, customer_email')
+        .eq('s1', sessionId)
+        .order('updated_at', { ascending: false })
+        .limit(10);
     }
     // Se não tem nenhum, buscar pelo email do cliente (se tiver resultId, podemos buscar o email do resultado)
     else {
@@ -104,8 +110,17 @@ export async function GET(request: Request) {
 
   } catch (error) {
     console.error('[PAYMENT CHECK] Erro geral:', error);
+    if (error instanceof Error) {
+      console.error('[PAYMENT CHECK] Stack trace:', error.stack);
+      console.error('[PAYMENT CHECK] Mensagem:', error.message);
+    }
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { 
+        error: 'Erro interno do servidor',
+        message: error instanceof Error ? error.message : 'Erro desconhecido',
+        approved: false,
+        pending: false
+      },
       { status: 500 }
     );
   }
