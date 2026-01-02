@@ -184,17 +184,17 @@ export default function QuizPage() {
     setIsSubmitting(true);
 
     try {
-      // Enviar resposta em background (não bloquear)
-      submitAnswer({
+      // Enviar resposta primeiro (com await para garantir que foi enviada)
+      await submitAnswer({
         sessionId,
         questionId: question.id,
         optionId,
-      }).catch((error) => {
-        // Tratar erro silenciosamente em background
-        console.error("Erro ao enviar resposta (background):", error);
       });
 
-      // Buscar próxima pergunta imediatamente
+      // Pequeno delay para melhorar experiência do usuário (3ms)
+      await new Promise(resolve => setTimeout(resolve, 3));
+
+      // Buscar próxima pergunta após enviar a resposta
       const nextData = await getNextQuestion({ sessionId });
 
       if (nextData.done) {

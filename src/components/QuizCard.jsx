@@ -19,6 +19,13 @@ export default function QuizCard({
     setIsProcessing(false);
   }, [question?.id]);
 
+  // Reset isProcessing quando isSubmitting voltar a false
+  useEffect(() => {
+    if (!isSubmitting) {
+      setIsProcessing(false);
+    }
+  }, [isSubmitting]);
+
   const handleOptionClick = (optionId) => {
     // Prevenir cliques duplicados
     if (isSubmitting || isProcessing) return;
