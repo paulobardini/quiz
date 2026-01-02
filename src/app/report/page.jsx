@@ -22,6 +22,7 @@ function ReportContent() {
   const [error, setError] = useState(null);
   const reportContainerRef = useRef(null);
   const [isTableOfContentsOpen, setIsTableOfContentsOpen] = useState(false);
+  const [isTableOfContentsDesktopOpen, setIsTableOfContentsDesktopOpen] = useState(false);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -228,14 +229,19 @@ function ReportContent() {
     // Primeiro, quebra linhas para Dias/Dia
     textStr = breakDaysLines(textStr);
     
-    // Frases-chave obrigatórias
+    // Tratamento especial para "Consciência não muda tudo de uma vez. Mas muda o ponto de partida."
+    // Deve ficar junto, em linha única, destacado
+    const conscienciaPattern = /(Consciência não muda tudo de uma vez\.\s*Mas muda o ponto de partida\.)/gi;
+    textStr = textStr.replace(conscienciaPattern, (match) => {
+      return `<span style="display: block; font-size: 1.15em; max-width: 85%; margin: 32px auto; line-height: 1.6; opacity: 0.95; text-align: center; white-space: nowrap;">${match}</span>`;
+    });
+    
+    // Frases-chave obrigatórias (exceto a de consciência que já foi tratada)
     const keyPhrases = [
       'Aqui, o problema não é você. É o processo.',
       'O ajuste aqui não é decidir melhor. É encerrar decisões.',
-      'Consciência não muda tudo de uma vez.',
       'aqui, o problema não é você. É o processo.',
-      'o ajuste aqui não é decidir melhor. É encerrar decisões.',
-      'consciência não muda tudo de uma vez.'
+      'o ajuste aqui não é decidir melhor. É encerrar decisões.'
     ];
 
     let result = textStr;
@@ -257,29 +263,9 @@ function ReportContent() {
   };
 
   const getBlockVisualStyle = (blockOrder) => {
-    const baseStyle = {
-      marginBottom: '72px'
+    return {
+      marginBottom: '24px'
     };
-
-    switch(blockOrder) {
-      case 1:
-        // Mais respiro e mais luz
-        return { ...baseStyle, paddingTop: '48px', paddingBottom: '48px', opacity: 0.95 };
-      case 3:
-        // Mais fechado e denso
-        return { ...baseStyle, paddingTop: '32px', paddingBottom: '32px', opacity: 0.88 };
-      case 4:
-        // Contraste mais forte
-        return { ...baseStyle, paddingTop: '40px', paddingBottom: '40px', opacity: 0.92 };
-      case 5:
-        // Clarear levemente
-        return { ...baseStyle, paddingTop: '40px', paddingBottom: '40px', opacity: 0.90 };
-      case 7:
-        // Sensação clara de encerramento
-        return { ...baseStyle, paddingTop: '48px', paddingBottom: '48px', opacity: 0.93 };
-      default:
-        return baseStyle;
-    }
   };
 
   const getCardStyle = (blockOrder) => {
@@ -289,7 +275,7 @@ function ReportContent() {
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         border: '1px solid rgba(255, 255, 255, 0.1)',
         borderRadius: '8px',
-        padding: '40px',
+        padding: '0',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
       };
     } else if (blockOrder === 5) {
@@ -298,7 +284,7 @@ function ReportContent() {
         backgroundColor: 'rgba(255, 255, 255, 0.03)',
         border: '1px solid rgba(255, 255, 255, 0.08)',
         borderRadius: '8px',
-        padding: '40px',
+        padding: '0',
         boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2)'
       };
     } else if (blockOrder === 7) {
@@ -307,7 +293,7 @@ function ReportContent() {
         backgroundColor: 'rgba(255, 255, 255, 0.04)',
         border: '1px solid rgba(255, 255, 255, 0.09)',
         borderRadius: '8px',
-        padding: '40px',
+        padding: '0',
         boxShadow: '0 2px 6px rgba(0, 0, 0, 0.25)'
       };
     }
@@ -478,53 +464,79 @@ function ReportContent() {
               zIndex: 100,
               display: 'none'
             }} className="table-of-contents-desktop">
-              <div style={{
-                backgroundColor: 'transparent',
-                border: 'none',
-                padding: '0',
-                minWidth: '200px'
-              }}>
-                <h3 style={{
-                  fontSize: '12px',
-                  fontWeight: 400,
-                  marginBottom: '16px',
+              <button
+                onClick={() => setIsTableOfContentsDesktopOpen(!isTableOfContentsDesktopOpen)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: '4px',
                   color: '#E5E5E5',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.8px',
-                  opacity: 0.6,
-                  fontWeight: 300
+                  fontSize: '13px',
+                  fontWeight: 400,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  opacity: 0.85,
+                  transition: 'all 0.2s ease',
+                  marginBottom: isTableOfContentsDesktopOpen ? '12px' : '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  minWidth: '200px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '0.85';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                }}
+              >
+                <span>Índice</span>
+                <span style={{ fontSize: '10px', opacity: 0.7 }}>
+                  {isTableOfContentsDesktopOpen ? '▼' : '▶'}
+                </span>
+              </button>
+              
+              {isTableOfContentsDesktopOpen && (
+                <div style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  padding: '0',
+                  minWidth: '200px'
                 }}>
-                  Índice
-                </h3>
-                <nav>
-                  {sortedBlocks.map((block, idx) => (
-                    <a
-                      key={block.block_id || idx}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        scrollToBlock(block.block_id || `block-${idx}`);
-                      }}
-                      style={{
-                        display: 'block',
-                        padding: '8px 0',
-                        fontSize: '14px',
-                        color: '#E5E5E5',
-                        opacity: 0.7,
-                        cursor: 'pointer',
-                        textDecoration: 'none',
-                        borderBottom: 'none',
-                        transition: 'opacity 0.2s',
-                        fontWeight: 300,
-                        lineHeight: 1.6
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
-                    >
-                      {removeBlockPrefix(block.title || '')}
-                    </a>
-                  ))}
-                </nav>
-              </div>
+                  <nav>
+                    {sortedBlocks.map((block, idx) => (
+                      <a
+                        key={block.block_id || idx}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          scrollToBlock(block.block_id || `block-${idx}`);
+                        }}
+                        style={{
+                          display: 'block',
+                          padding: '8px 0',
+                          fontSize: '14px',
+                          color: '#E5E5E5',
+                          opacity: 0.7,
+                          cursor: 'pointer',
+                          textDecoration: 'none',
+                          borderBottom: 'none',
+                          transition: 'opacity 0.2s',
+                          fontWeight: 300,
+                          lineHeight: 1.6
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+                      >
+                        {removeBlockPrefix(block.title || '')}
+                      </a>
+                    ))}
+                  </nav>
+                </div>
+              )}
             </div>
 
             {/* Botão Mobile para Sumário */}
@@ -537,18 +549,33 @@ function ReportContent() {
                 style={{
                   width: '100%',
                   padding: '12px 16px',
-                  backgroundColor: 'transparent',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
                   borderRadius: '4px',
                   color: '#E5E5E5',
                   fontSize: '14px',
-                  fontWeight: 300,
+                  fontWeight: 400,
                   cursor: 'pointer',
                   textAlign: 'left',
-                  opacity: 0.7
+                  opacity: 0.85,
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '0.85';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
                 }}
               >
-                {isTableOfContentsOpen ? 'Ocultar índice' : 'Índice'}
+                <span>Índice</span>
+                <span style={{ fontSize: '10px', opacity: 0.7 }}>
+                  {isTableOfContentsOpen ? '▼' : '▶'}
+                </span>
               </button>
               
               {isTableOfContentsOpen && (
@@ -601,35 +628,35 @@ function ReportContent() {
                   {hasCard ? (
                     <div style={cardStyle}>
                       <h2 style={{ 
-                        fontSize: '28px', 
-                        fontWeight: 400, 
-                        marginBottom: '12px',
-                        marginTop: '0',
-                        color: '#E5E5E5',
-                        lineHeight: 1.4,
-                        letterSpacing: '-0.3px'
-                      }}>
-                        {removeBlockPrefix(block.title || '')}
-                      </h2>
-                      
-                      {block.subtitle && (
-                        <p style={{ 
-                          fontStyle: 'italic', 
-                          fontSize: '15px', 
-                          opacity: 0.65, 
-                          marginTop: '8px',
-                          marginBottom: '28px',
+                          fontSize: '28px', 
+                          fontWeight: 400, 
+                          marginBottom: '12px',
+                          marginTop: '0',
                           color: '#E5E5E5',
-                          lineHeight: 1.5,
-                          fontWeight: 300
+                          lineHeight: 1.4,
+                          letterSpacing: '-0.3px'
                         }}>
-                          {String(block.subtitle)}
-                        </p>
-                      )}
-                      
-                      <div style={{
-                        maxWidth: '68ch'
-                      }}>
+                          {removeBlockPrefix(block.title || '')}
+                        </h2>
+                        
+                        {block.subtitle && (
+                          <p style={{ 
+                            fontStyle: 'italic', 
+                            fontSize: '15px', 
+                            opacity: 0.65, 
+                            marginTop: '8px',
+                            marginBottom: '28px',
+                            color: '#E5E5E5',
+                            lineHeight: 1.5,
+                            fontWeight: 300
+                          }}>
+                            {String(block.subtitle)}
+                          </p>
+                        )}
+                        
+                        <div style={{
+                          maxWidth: '68ch'
+                        }}>
                         {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
                           <>
                             {block.paragraphs.map((text, idx) => {
@@ -724,7 +751,7 @@ function ReportContent() {
                   
                   {index < sortedBlocks.length - 1 && !hasCard && (
                     <div style={{
-                      marginTop: '56px',
+                      marginTop: '20px',
                       height: '1px',
                       backgroundColor: 'rgba(255, 255, 255, 0.08)',
                       width: '100%'
@@ -742,8 +769,8 @@ function ReportContent() {
               textAlign: 'center'
             }}>
               <h2 style={{ 
-                fontSize: '22px', 
-                marginBottom: '16px',
+                fontSize: '28px', 
+                marginBottom: '20px',
                 color: '#E5E5E5',
                 fontWeight: 400,
                 letterSpacing: '-0.3px'
@@ -751,22 +778,22 @@ function ReportContent() {
                 Leve este relatório com você
               </h2>
               <p style={{ 
-                fontSize: '15px', 
+                fontSize: '17px', 
                 opacity: 0.7, 
-                marginBottom: '28px',
+                marginBottom: '32px',
                 color: '#E5E5E5',
                 lineHeight: 1.6,
                 fontWeight: 300,
                 maxWidth: '500px',
-                margin: '0 auto 28px auto'
+                margin: '0 auto 32px auto'
               }}>
                 Este material foi criado para ser relido com calma. Você pode baixar a versão em PDF para acessar quando quiser.
               </p>
               <button
                 onClick={handleDownloadPDF}
                 style={{
-                  padding: '12px 24px',
-                  fontSize: '14px',
+                  padding: '16px 32px',
+                  fontSize: '16px',
                   fontWeight: 400,
                   backgroundColor: '#ffffff',
                   color: '#000000',
@@ -775,20 +802,20 @@ function ReportContent() {
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  gap: '10px',
                   letterSpacing: '0.3px'
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.8 }}>
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.8 }}>
                   <path d="M17.5 12.5V15.8333C17.5 16.2754 17.3244 16.6993 17.0118 17.0118C16.6993 17.3244 16.2754 17.5 15.8333 17.5H4.16667C3.72464 17.5 3.30072 17.3244 2.98816 17.0118C2.67559 16.6993 2.5 16.2754 2.5 15.8333V12.5M13.3333 8.33333L10 11.6667M10 11.6667L6.66667 8.33333M10 11.6667V2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 Baixar PDF
               </button>
               <p style={{
-                fontSize: '12px',
+                fontSize: '14px',
                 opacity: 0.6,
                 color: '#E5E5E5',
-                marginTop: '16px',
+                marginTop: '20px',
                 fontWeight: 300
               }}>
                 Recomendado para leitura offline
@@ -910,82 +937,123 @@ function ReportContent() {
           {/* SUMÁRIO - Desktop (fixo lateral) e Mobile (colapsável) */}
           <div style={{
             position: 'sticky',
-            top: '120px',
+            top: '100px',
             alignSelf: 'flex-start',
             zIndex: 100,
             display: 'none'
           }} className="table-of-contents-desktop">
-            <div style={{
-              backgroundColor: 'transparent',
-              border: 'none',
-              padding: '0',
-              minWidth: '200px'
-            }}>
-              <h3 style={{
-                fontSize: '12px',
-                fontWeight: 400,
-                marginBottom: '16px',
+            <button
+              onClick={() => setIsTableOfContentsDesktopOpen(!isTableOfContentsDesktopOpen)}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '4px',
                 color: '#E5E5E5',
-                textTransform: 'uppercase',
-                letterSpacing: '0.8px',
-                opacity: 0.6,
-                fontWeight: 300
+                fontSize: '13px',
+                fontWeight: 400,
+                cursor: 'pointer',
+                textAlign: 'left',
+                opacity: 0.85,
+                transition: 'all 0.2s ease',
+                marginBottom: isTableOfContentsDesktopOpen ? '12px' : '0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                minWidth: '200px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '1';
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '0.85';
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+              }}
+            >
+              <span>Índice</span>
+              <span style={{ fontSize: '10px', opacity: 0.7 }}>
+                {isTableOfContentsDesktopOpen ? '▼' : '▶'}
+              </span>
+            </button>
+            
+            {isTableOfContentsDesktopOpen && (
+              <div style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                padding: '0',
+                minWidth: '200px'
               }}>
-                Índice
-              </h3>
-              <nav>
-                {sortedBlocksFallback.map((block, idx) => (
-                  <a
-                    key={block.block_id || idx}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      scrollToBlock(block.block_id || `block-${idx}`);
-                    }}
-                    style={{
-                      display: 'block',
-                      padding: '8px 0',
-                      fontSize: '14px',
-                      color: '#E5E5E5',
-                      opacity: 0.7,
-                      cursor: 'pointer',
-                      textDecoration: 'none',
-                      borderBottom: 'none',
-                      transition: 'opacity 0.2s',
-                      fontWeight: 300,
-                      lineHeight: 1.6
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                    onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
-                  >
-                    {String(block.title || '')}
-                  </a>
-                ))}
-              </nav>
-            </div>
+                <nav>
+                  {sortedBlocksFallback.map((block, idx) => (
+                    <a
+                      key={block.block_id || idx}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        scrollToBlock(block.block_id || `block-${idx}`);
+                      }}
+                      style={{
+                        display: 'block',
+                        padding: '8px 0',
+                        fontSize: '14px',
+                        color: '#E5E5E5',
+                        opacity: 0.7,
+                        cursor: 'pointer',
+                        textDecoration: 'none',
+                        borderBottom: 'none',
+                        transition: 'opacity 0.2s',
+                        fontWeight: 300,
+                        lineHeight: 1.6
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+                    >
+                      {removeBlockPrefix(block.title || '')}
+                    </a>
+                  ))}
+                </nav>
+              </div>
+            )}
           </div>
 
           {/* Botão Mobile para Sumário */}
           <div style={{
             display: 'block',
-            marginBottom: '48px'
+            marginBottom: '40px'
           }} className="table-of-contents-mobile">
             <button
               onClick={() => setIsTableOfContentsOpen(!isTableOfContentsOpen)}
               style={{
                 width: '100%',
                 padding: '12px 16px',
-                backgroundColor: 'transparent',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
                 borderRadius: '4px',
                 color: '#E5E5E5',
                 fontSize: '14px',
-                fontWeight: 300,
+                fontWeight: 400,
                 cursor: 'pointer',
                 textAlign: 'left',
-                opacity: 0.7
+                opacity: 0.85,
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '1';
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '0.85';
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
               }}
             >
-              {isTableOfContentsOpen ? 'Ocultar índice' : 'Índice'}
+              <span>Índice</span>
+              <span style={{ fontSize: '10px', opacity: 0.7 }}>
+                {isTableOfContentsOpen ? '▼' : '▶'}
+              </span>
             </button>
             
             {isTableOfContentsOpen && (
@@ -1161,7 +1229,7 @@ function ReportContent() {
                   
                   {index < sortedBlocksFallback.length - 1 && !hasCard && (
                     <div style={{
-                      marginTop: '56px',
+                      marginTop: '20px',
                       height: '1px',
                       backgroundColor: 'rgba(255, 255, 255, 0.08)',
                       width: '100%'
@@ -1179,8 +1247,8 @@ function ReportContent() {
             textAlign: 'center'
           }}>
             <h2 style={{ 
-              fontSize: '22px', 
-              marginBottom: '16px',
+              fontSize: '28px', 
+              marginBottom: '20px',
               color: '#E5E5E5',
               fontWeight: 400,
               letterSpacing: '-0.3px'
@@ -1188,22 +1256,22 @@ function ReportContent() {
               Leve este relatório com você
             </h2>
             <p style={{ 
-              fontSize: '15px', 
+              fontSize: '17px', 
               opacity: 0.7, 
-              marginBottom: '28px',
+              marginBottom: '32px',
               color: '#E5E5E5',
               lineHeight: 1.6,
               fontWeight: 300,
               maxWidth: '500px',
-              margin: '0 auto 28px auto'
+              margin: '0 auto 32px auto'
             }}>
               Este material foi criado para ser relido com calma. Você pode baixar a versão em PDF para acessar quando quiser.
             </p>
             <button
               onClick={handleDownloadPDF}
               style={{
-                padding: '12px 24px',
-                fontSize: '14px',
+                padding: '16px 32px',
+                fontSize: '16px',
                 fontWeight: 400,
                 backgroundColor: '#ffffff',
                 color: '#000000',
@@ -1212,20 +1280,20 @@ function ReportContent() {
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '8px',
+                gap: '10px',
                 letterSpacing: '0.3px'
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.8 }}>
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.8 }}>
                 <path d="M17.5 12.5V15.8333C17.5 16.2754 17.3244 16.6993 17.0118 17.0118C16.6993 17.3244 16.2754 17.5 15.8333 17.5H4.16667C3.72464 17.5 3.30072 17.3244 2.98816 17.0118C2.67559 16.6993 2.5 16.2754 2.5 15.8333V12.5M13.3333 8.33333L10 11.6667M10 11.6667L6.66667 8.33333M10 11.6667V2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               Baixar PDF
             </button>
             <p style={{
-              fontSize: '12px',
+              fontSize: '14px',
               opacity: 0.6,
               color: '#E5E5E5',
-              marginTop: '16px',
+              marginTop: '20px',
               fontWeight: 300
             }}>
               Recomendado para leitura offline
