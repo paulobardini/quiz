@@ -177,17 +177,24 @@ export async function GET(
       const scores = result.scores_json || result.scores || {};
       console.log('[REPORT] Scores disponíveis:', scores);
       
-      // Determinar domínio primário: usar primary_profile se disponível, senão o domínio com maior score
-      let primaryDomainKey = result.primary_profile;
+      // SEMPRE calcular domínio primário pelo maior score (não confiar no primary_profile salvo)
+      let primaryDomainKey = null;
       
-      if (!primaryDomainKey && Object.keys(scores).length > 0) {
+      if (Object.keys(scores).length > 0) {
         // Encontrar domínio com maior score
         const sortedDomains = Object.entries(scores)
           .map(([key, value]: [string, any]) => ({ key, score: Number(value) || 0 }))
           .sort((a, b) => b.score - a.score);
         
         primaryDomainKey = sortedDomains[0]?.key;
-        console.log('[REPORT] Domínio primário calculado pelo score:', primaryDomainKey);
+        console.log('[REPORT] Domínio primário calculado pelo score:', primaryDomainKey, 'score:', sortedDomains[0]?.score);
+        console.log('[REPORT] Todos os scores:', sortedDomains);
+      }
+      
+      // Se não conseguiu calcular pelos scores, usar primary_profile como último recurso
+      if (!primaryDomainKey) {
+        primaryDomainKey = result.primary_profile;
+        console.log('[REPORT] Usando primary_profile salvo como fallback:', primaryDomainKey);
       }
       
       if (primaryDomainKey) {
