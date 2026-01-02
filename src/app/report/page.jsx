@@ -464,74 +464,96 @@ function ReportContent() {
               color: '#EDEDED'
             }}
           >
-            {/* CAPA */}
+            {/* CAPA - ZONA 1: TÍTULO PRINCIPAL */}
             <section style={{
               width: '100%',
-              paddingTop: '72px',
-              paddingBottom: '48px',
+              paddingTop: '80px',
+              paddingBottom: '0',
               marginBottom: '0',
               textAlign: 'left'
             }} className="hero-section-desktop">
               
               <h1 style={{ 
-                fontSize: 'clamp(32px, 4vw, 44px)', 
-                fontWeight: 600, 
-                marginBottom: '14px',
-                color: '#EDEDED',
-                lineHeight: 1.08,
-                letterSpacing: '-0.02em'
+                fontSize: 'clamp(36px, 5vw, 52px)', 
+                fontWeight: 700, 
+                marginBottom: '32px',
+                color: '#F5F5F5',
+                lineHeight: 1.15,
+                letterSpacing: '-0.03em',
+                maxWidth: '680px'
               }}>
                 Leitura completa do seu padrão de decisão
               </h1>
               
-              <p style={{
-                fontSize: 'clamp(16px, 2vw, 18px)',
-                opacity: 0.78,
-                marginBottom: '14px',
-                color: '#BDBDBD',
-                lineHeight: 1.55,
-                fontWeight: 300,
-                maxWidth: '520px'
+              {/* ZONA 2: SUBTÍTULO DE CONTEXTO */}
+              <div style={{
+                marginBottom: '40px',
+                maxWidth: '600px'
               }}>
-                Leitura completa para entender seu padrão e ajustar decisões com método.<br />
-                Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
-              </p>
+                <p style={{
+                  fontSize: 'clamp(17px, 2.2vw, 20px)',
+                  opacity: 0.75,
+                  marginBottom: '12px',
+                  color: '#D0D0D0',
+                  lineHeight: 1.65,
+                  fontWeight: 300
+                }}>
+                  Leitura completa para entender seu padrão e ajustar decisões com método.
+                </p>
+                <p style={{
+                  fontSize: 'clamp(17px, 2.2vw, 20px)',
+                  opacity: 0.75,
+                  marginBottom: '0',
+                  color: '#D0D0D0',
+                  lineHeight: 1.65,
+                  fontWeight: 300
+                }}>
+                  Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
+                </p>
+              </div>
 
-              {/* Micro selo de credibilidade */}
-              <p style={{
-                fontSize: '13px',
-                opacity: 0.6,
-                marginTop: '14px',
-                marginBottom: '0',
-                color: '#BDBDBD',
-                fontWeight: 300
-              }}>
-                Baseado nas suas respostas. Estrutura em 7 blocos. Leitura de 5 a 8 minutos.
-              </p>
+              {/* Divisor leve */}
+              <div style={{
+                height: '1px',
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                marginTop: '32px',
+                marginBottom: '32px',
+                maxWidth: '600px'
+              }} />
 
-              {/* Badge do perfil */}
+              {/* ZONA 3: CARD DE VALOR E PERSONALIZAÇÃO */}
               {(() => {
                 const profileName = report.profileName || extractProfileNameFromFirstParagraph(sortedBlocks);
                 if (profileName) {
                   return (
                     <div style={{
-                      marginTop: '14px'
+                      marginTop: '0',
+                      marginBottom: '48px',
+                      padding: '24px 28px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      borderRadius: '6px',
+                      maxWidth: '400px',
+                      boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)'
                     }}>
                       <div style={{
-                        fontSize: '12px',
+                        fontSize: '11px',
                         textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        opacity: 0.6,
+                        letterSpacing: '0.12em',
+                        opacity: 0.65,
                         color: '#BDBDBD',
-                        fontWeight: 300
+                        fontWeight: 400,
+                        marginBottom: '10px'
                       }}>
-                        Seu padrão dominante
+                        SEU PADRÃO DOMINANTE
                       </div>
                       <div style={{
-                        fontSize: 'clamp(22px, 3vw, 26px)',
-                        fontWeight: 600,
-                        marginTop: '6px',
-                        color: '#EDEDED'
+                        fontSize: 'clamp(24px, 3.5vw, 32px)',
+                        fontWeight: 700,
+                        marginTop: '4px',
+                        color: '#F5F5F5',
+                        letterSpacing: '-0.02em',
+                        lineHeight: 1.2
                       }}>
                         {String(profileName)}
                       </div>
@@ -541,26 +563,14 @@ function ReportContent() {
                 return null;
               })()}
 
-              {/* Divisor discreto */}
+              {/* Divisor leve antes do conteúdo */}
               <div style={{
                 height: '1px',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                marginTop: '28px',
-                marginBottom: '28px'
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                marginTop: '40px',
+                marginBottom: '48px',
+                maxWidth: '680px'
               }} />
-
-              {/* Disclaimer */}
-              <p style={{
-                fontSize: '13px',
-                opacity: 0.55,
-                marginTop: '16px',
-                marginBottom: '0',
-                color: '#BDBDBD',
-                fontWeight: 300,
-                textAlign: 'left'
-              }}>
-                Não é diagnóstico. É uma leitura de padrões e direcionamento prático.
-              </p>
             </section>
 
             {/* Container com duas colunas no desktop */}
@@ -668,7 +678,7 @@ function ReportContent() {
                         )}
                         
                         <div style={{
-                          maxWidth: '68ch'
+                          maxWidth: blockOrder === 1 ? '680px' : '68ch'
                         }}>
                         {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
                           <>
@@ -684,7 +694,7 @@ function ReportContent() {
                                   dangerouslySetInnerHTML={{ __html: highlightedText }}
                                   style={{ 
                                     fontSize: isKeyPhrase ? '20px' : '17px', 
-                                    lineHeight: isKeyPhrase ? 1.7 : 1.8,
+                                    lineHeight: blockOrder === 1 ? (isKeyPhrase ? 1.85 : 1.9) : (isKeyPhrase ? 1.7 : 1.8),
                                     opacity: isKeyPhrase ? 0.92 : 0.85,
                                     marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '36px' : '24px') : '0',
                                     color: '#E5E5E5',
@@ -745,7 +755,7 @@ function ReportContent() {
                                   dangerouslySetInnerHTML={{ __html: highlightedText }}
                                   style={{ 
                                     fontSize: isKeyPhrase ? '20px' : '17px', 
-                                    lineHeight: isKeyPhrase ? 1.7 : 1.8,
+                                    lineHeight: blockOrder === 1 ? (isKeyPhrase ? 1.85 : 1.9) : (isKeyPhrase ? 1.7 : 1.8),
                                     opacity: isKeyPhrase ? 0.92 : 0.85,
                                     marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '36px' : '24px') : '0',
                                     color: '#E5E5E5',
@@ -857,74 +867,96 @@ function ReportContent() {
               color: '#EDEDED'
             }}
           >
-            {/* CAPA Mobile */}
+            {/* CAPA Mobile - ZONA 1: TÍTULO PRINCIPAL */}
             <section style={{
               width: '100%',
-              paddingTop: '48px',
-              paddingBottom: '32px',
+              paddingTop: '56px',
+              paddingBottom: '0',
               marginBottom: '0',
               textAlign: 'left'
             }} className="hero-section-mobile">
               
               <h1 style={{ 
-                fontSize: 'clamp(32px, 4vw, 44px)', 
-                fontWeight: 600, 
-                marginBottom: '14px',
-                color: '#EDEDED',
-                lineHeight: 1.08,
-                letterSpacing: '-0.02em'
+                fontSize: 'clamp(32px, 6vw, 44px)', 
+                fontWeight: 700, 
+                marginBottom: '28px',
+                color: '#F5F5F5',
+                lineHeight: 1.15,
+                letterSpacing: '-0.03em',
+                maxWidth: '100%'
               }}>
                 Leitura completa do seu padrão de decisão
               </h1>
               
-              <p style={{
-                fontSize: 'clamp(16px, 2vw, 18px)',
-                opacity: 0.78,
-                marginBottom: '14px',
-                color: '#BDBDBD',
-                lineHeight: 1.55,
-                fontWeight: 300,
-                maxWidth: '520px'
+              {/* ZONA 2: SUBTÍTULO DE CONTEXTO */}
+              <div style={{
+                marginBottom: '36px',
+                maxWidth: '100%'
               }}>
-                Leitura completa para entender seu padrão e ajustar decisões com método.<br />
-                Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
-              </p>
+                <p style={{
+                  fontSize: 'clamp(16px, 2.5vw, 19px)',
+                  opacity: 0.75,
+                  marginBottom: '12px',
+                  color: '#D0D0D0',
+                  lineHeight: 1.65,
+                  fontWeight: 300
+                }}>
+                  Leitura completa para entender seu padrão e ajustar decisões com método.
+                </p>
+                <p style={{
+                  fontSize: 'clamp(16px, 2.5vw, 19px)',
+                  opacity: 0.75,
+                  marginBottom: '0',
+                  color: '#D0D0D0',
+                  lineHeight: 1.65,
+                  fontWeight: 300
+                }}>
+                  Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
+                </p>
+              </div>
 
-              {/* Micro selo de credibilidade */}
-              <p style={{
-                fontSize: '13px',
-                opacity: 0.6,
-                marginTop: '14px',
-                marginBottom: '0',
-                color: '#BDBDBD',
-                fontWeight: 300
-              }}>
-                Baseado nas suas respostas. Estrutura em 7 blocos. Leitura de 5 a 8 minutos.
-              </p>
+              {/* Divisor leve */}
+              <div style={{
+                height: '1px',
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                marginTop: '28px',
+                marginBottom: '28px',
+                maxWidth: '100%'
+              }} />
 
-              {/* Badge do perfil */}
+              {/* ZONA 3: CARD DE VALOR E PERSONALIZAÇÃO */}
               {(() => {
                 const profileName = report.profileName || extractProfileNameFromFirstParagraph(sortedBlocks);
                 if (profileName) {
                   return (
                     <div style={{
-                      marginTop: '14px'
+                      marginTop: '0',
+                      marginBottom: '40px',
+                      padding: '20px 24px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      borderRadius: '6px',
+                      maxWidth: '100%',
+                      boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)'
                     }}>
                       <div style={{
-                        fontSize: '12px',
+                        fontSize: '11px',
                         textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        opacity: 0.6,
+                        letterSpacing: '0.12em',
+                        opacity: 0.65,
                         color: '#BDBDBD',
-                        fontWeight: 300
+                        fontWeight: 400,
+                        marginBottom: '10px'
                       }}>
-                        Seu padrão dominante
+                        SEU PADRÃO DOMINANTE
                       </div>
                       <div style={{
-                        fontSize: 'clamp(22px, 3vw, 26px)',
-                        fontWeight: 600,
-                        marginTop: '6px',
-                        color: '#EDEDED'
+                        fontSize: 'clamp(22px, 4vw, 28px)',
+                        fontWeight: 700,
+                        marginTop: '4px',
+                        color: '#F5F5F5',
+                        letterSpacing: '-0.02em',
+                        lineHeight: 1.2
                       }}>
                         {String(profileName)}
                       </div>
@@ -934,26 +966,14 @@ function ReportContent() {
                 return null;
               })()}
 
-              {/* Divisor discreto */}
+              {/* Divisor leve antes do conteúdo */}
               <div style={{
                 height: '1px',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                marginTop: '28px',
-                marginBottom: '28px'
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                marginTop: '32px',
+                marginBottom: '40px',
+                maxWidth: '100%'
               }} />
-
-              {/* Disclaimer */}
-              <p style={{
-                fontSize: '13px',
-                opacity: 0.55,
-                marginTop: '16px',
-                marginBottom: '0',
-                color: '#BDBDBD',
-                fontWeight: 300,
-                textAlign: 'left'
-              }}>
-                Não é diagnóstico. É uma leitura de padrões e direcionamento prático.
-              </p>
             </section>
 
             {/* Container com duas colunas no desktop - Mobile mostra apenas conteúdo */}
@@ -1074,7 +1094,7 @@ function ReportContent() {
                         )}
                         
                         <div style={{
-                          maxWidth: '68ch'
+                          maxWidth: blockOrder === 1 ? '680px' : '68ch'
                         }}>
                         {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
                           <>
@@ -1090,7 +1110,7 @@ function ReportContent() {
                                   dangerouslySetInnerHTML={{ __html: highlightedText }}
                                   style={{ 
                                     fontSize: isKeyPhrase ? '20px' : '17px', 
-                                    lineHeight: isKeyPhrase ? 1.7 : 1.8,
+                                    lineHeight: blockOrder === 1 ? (isKeyPhrase ? 1.85 : 1.9) : (isKeyPhrase ? 1.7 : 1.8),
                                     opacity: isKeyPhrase ? 0.92 : 0.85,
                                     marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '36px' : '24px') : '0',
                                     color: '#E5E5E5',
@@ -1135,7 +1155,7 @@ function ReportContent() {
                         )}
                         
                         <div style={{
-                          maxWidth: '68ch'
+                          maxWidth: blockOrder === 1 ? '680px' : '68ch'
                         }}>
                           {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
                             <>
@@ -1151,7 +1171,7 @@ function ReportContent() {
                                     dangerouslySetInnerHTML={{ __html: highlightedText }}
                                     style={{ 
                                       fontSize: isKeyPhrase ? '20px' : '17px', 
-                                      lineHeight: isKeyPhrase ? 1.7 : 1.8,
+                                      lineHeight: blockOrder === 1 ? (isKeyPhrase ? 1.85 : 1.9) : (isKeyPhrase ? 1.7 : 1.8),
                                       opacity: isKeyPhrase ? 0.92 : 0.85,
                                       marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '36px' : '24px') : '0',
                                       color: '#E5E5E5',
@@ -1590,7 +1610,7 @@ function ReportContent() {
                                   dangerouslySetInnerHTML={{ __html: highlightedText }}
                                   style={{ 
                                     fontSize: isKeyPhrase ? '20px' : '17px', 
-                                    lineHeight: isKeyPhrase ? 1.7 : 1.8,
+                                    lineHeight: blockOrder === 1 ? (isKeyPhrase ? 1.85 : 1.9) : (isKeyPhrase ? 1.7 : 1.8),
                                     opacity: isKeyPhrase ? 0.92 : 0.85,
                                     marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '36px' : '24px') : '0',
                                     color: '#E5E5E5',
@@ -1651,7 +1671,7 @@ function ReportContent() {
                                   dangerouslySetInnerHTML={{ __html: highlightedText }}
                                   style={{ 
                                     fontSize: isKeyPhrase ? '20px' : '17px', 
-                                    lineHeight: isKeyPhrase ? 1.7 : 1.8,
+                                    lineHeight: blockOrder === 1 ? (isKeyPhrase ? 1.85 : 1.9) : (isKeyPhrase ? 1.7 : 1.8),
                                     opacity: isKeyPhrase ? 0.92 : 0.85,
                                     marginBottom: idx < block.paragraphs.length - 1 ? (isKeyPhrase ? '36px' : '24px') : '0',
                                     color: '#E5E5E5',
