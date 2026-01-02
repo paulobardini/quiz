@@ -152,22 +152,61 @@ function ReportContent() {
         margin: [20, 20, 20, 20],
         filename: 'relatorio-claridade-decisao.pdf',
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#121212' },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
       const element = reportContainerRef.current.cloneNode(true);
-      element.style.backgroundColor = '#ffffff';
-      element.style.color = '#000000';
+      element.style.backgroundColor = '#121212';
+      element.style.color = '#E5E5E5';
       
+      // Encontrar todas as sections de blocos
+      const blockSections = Array.from(element.querySelectorAll('section[id^="block-"]'));
+      
+      // Adicionar estilos de quebra de página e ajustar cores
       const allElements = element.querySelectorAll('*');
       allElements.forEach((el) => {
         const htmlEl = el;
-        htmlEl.style.backgroundColor = htmlEl.style.backgroundColor === 'transparent' || !htmlEl.style.backgroundColor ? '#ffffff' : htmlEl.style.backgroundColor;
-        if (htmlEl.tagName === 'SECTION' || htmlEl.tagName === 'DIV') {
-          htmlEl.style.color = '#000000';
+        
+        // Ajustar background para preto
+        const bgColor = htmlEl.style.backgroundColor;
+        if (!bgColor || bgColor === 'transparent' || bgColor === 'rgba(0, 0, 0, 0)' || bgColor === 'rgb(255, 255, 255)' || bgColor === '#ffffff') {
+          htmlEl.style.backgroundColor = '#121212';
+        }
+        
+        // Manter cores de texto legíveis
+        if (htmlEl.tagName === 'SECTION' || htmlEl.tagName === 'DIV' || htmlEl.tagName === 'P' || htmlEl.tagName === 'H1' || htmlEl.tagName === 'H2' || htmlEl.tagName === 'H3' || htmlEl.tagName === 'SPAN') {
+          const textColor = htmlEl.style.color;
+          if (!textColor || textColor === 'rgb(0, 0, 0)' || textColor === '#000000' || textColor === 'rgb(255, 255, 255)') {
+            htmlEl.style.color = '#E5E5E5';
+          }
+        }
+        
+        // Adicionar quebras de página nos blocos (sections) - exceto o primeiro
+        if (htmlEl.tagName === 'SECTION' && htmlEl.id && htmlEl.id.startsWith('block-')) {
+          const isFirstBlock = blockSections.indexOf(htmlEl) === 0;
+          if (!isFirstBlock) {
+            htmlEl.style.pageBreakBefore = 'always';
+            htmlEl.style.breakBefore = 'page';
+          }
+          htmlEl.style.pageBreakInside = 'avoid';
+          htmlEl.style.breakInside = 'avoid';
         }
       });
+
+      // Adicionar CSS para quebras de página via style tag
+      const style = document.createElement('style');
+      style.textContent = `
+        section[id^="block-"] {
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+        }
+        section[id^="block-"]:not(:first-of-type) {
+          page-break-before: always !important;
+          break-before: page !important;
+        }
+      `;
+      element.appendChild(style);
 
       html2pdf().set(opt).from(element).save();
     } catch (error) {
