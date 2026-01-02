@@ -66,13 +66,46 @@ export default function PaywallPage() {
       return;
     }
 
-    // Verificar se o botão está no DOM após um pequeno delay
+    // Verificar se o botão está no DOM após um pequeno delay e adicionar listener direto
     setTimeout(() => {
       const button = document.querySelector('.page-button');
       if (button) {
         console.log('[PAYWALL] ✅ Botão encontrado no DOM');
         console.log('[PAYWALL] Botão visível?', button.offsetParent !== null);
         console.log('[PAYWALL] Botão posição:', button.getBoundingClientRect());
+        
+        // Adicionar event listener direto no DOM como fallback
+        const handleClickDirect = (e) => {
+          console.log('[PAYWALL] ===== CLIQUE CAPTURADO VIA EVENT LISTENER DIRETO =====');
+          e.preventDefault();
+          e.stopPropagation();
+          handleCheckout();
+        };
+        
+        // Remover listener anterior se existir
+        button.removeEventListener('click', handleClickDirect);
+        // Adicionar novo listener
+        button.addEventListener('click', handleClickDirect, { capture: true, passive: false });
+        console.log('[PAYWALL] ✅ Event listener direto adicionado ao botão');
+        
+        // Também adicionar para touch events
+        const handleTouchDirect = (e) => {
+          console.log('[PAYWALL] ===== TOUCH CAPTURADO VIA EVENT LISTENER DIRETO =====');
+          e.preventDefault();
+          e.stopPropagation();
+          handleCheckout();
+        };
+        
+        button.removeEventListener('touchend', handleTouchDirect);
+        button.addEventListener('touchend', handleTouchDirect, { capture: true, passive: false });
+        console.log('[PAYWALL] ✅ Touch event listener direto adicionado ao botão');
+        
+        // Verificar se há elementos cobrindo o botão
+        const rect = button.getBoundingClientRect();
+        const elementAtPoint = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        console.log('[PAYWALL] Elemento no centro do botão:', elementAtPoint);
+        console.log('[PAYWALL] É o próprio botão?', elementAtPoint === button || button.contains(elementAtPoint));
+        
       } else {
         console.error('[PAYWALL] ❌ Botão NÃO encontrado no DOM!');
       }
