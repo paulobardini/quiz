@@ -30,6 +30,10 @@ export default function PaywallPage() {
     const sessionId = getSessionId();
     const resultId = getResultId();
     
+    console.log('[PAYWALL] Componente montado');
+    console.log('[PAYWALL] SessionId:', sessionId);
+    console.log('[PAYWALL] ResultId:', resultId);
+    
     if (!sessionId && !resultId) {
       // Incrementa o contador antes de verificar se deve limpar
       incrementHomeRedirectCount();
@@ -47,6 +51,18 @@ export default function PaywallPage() {
       router.push("/");
       return;
     }
+
+    // Verificar se o botão está no DOM após um pequeno delay
+    setTimeout(() => {
+      const button = document.querySelector('.page-button');
+      if (button) {
+        console.log('[PAYWALL] ✅ Botão encontrado no DOM');
+        console.log('[PAYWALL] Botão visível?', button.offsetParent !== null);
+        console.log('[PAYWALL] Botão posição:', button.getBoundingClientRect());
+      } else {
+        console.error('[PAYWALL] ❌ Botão NÃO encontrado no DOM!');
+      }
+    }, 100);
   }, [router]);
 
   const handleCheckout = () => {
@@ -77,14 +93,14 @@ export default function PaywallPage() {
   };
 
   return (
-    <main className="page-root">
+    <main className="page-root" style={{ overflowY: 'auto', height: '100vh' }}>
       <div
         className="page-bg"
         style={{ backgroundImage: `url(${LP_BG_URL})` }}
       />
       <div className="page-overlay" />
-      <section className="page-center">
-        <div className="page-card" style={{ maxWidth: "640px", borderRadius: "26px", padding: "48px 40px" }}>
+      <section className="page-center" style={{ padding: '24px', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="page-card" style={{ maxWidth: "640px", borderRadius: "26px", padding: "48px 40px", margin: 'auto' }}>
           <div className="mb-10">
             <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10" style={{ backdropFilter: "blur(8px)" }}>
               <svg
@@ -109,7 +125,7 @@ export default function PaywallPage() {
             </p>
           </div>
 
-          <div className="mb-10 space-y-5 text-left">
+          <div className="mb-8 space-y-5 text-left">
             <div className="flex items-start space-x-4">
               <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1 border border-white/10">
                 <svg
@@ -189,22 +205,57 @@ export default function PaywallPage() {
             </div>
           </div>
 
-          <button
-            onClick={(e) => {
-              console.log('[PAYWALL] ===== BOTÃO CLICADO =====');
-              e.preventDefault();
-              e.stopPropagation();
-              console.log('[PAYWALL] Evento capturado, chamando handleCheckout...');
-              handleCheckout();
-            }}
-            onMouseDown={() => console.log('[PAYWALL] Mouse down no botão')}
-            onMouseUp={() => console.log('[PAYWALL] Mouse up no botão')}
-            className="page-button"
-            type="button"
-            style={{ zIndex: 1000, position: 'relative' }}
-          >
-            Desbloquear Relatório
-          </button>
+          <div style={{ marginTop: '24px', position: 'relative', zIndex: 1000 }}>
+            <button
+              ref={(el) => {
+                if (el) {
+                  console.log('[PAYWALL] Botão renderizado, ref callback chamado');
+                  console.log('[PAYWALL] Botão elemento:', el);
+                  console.log('[PAYWALL] Botão visível?', el.offsetParent !== null);
+                }
+              }}
+              onClick={(e) => {
+                console.log('[PAYWALL] ===== BOTÃO CLICADO (onClick) =====');
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('[PAYWALL] Evento capturado, chamando handleCheckout...');
+                handleCheckout();
+              }}
+              onMouseDown={(e) => {
+                console.log('[PAYWALL] ===== Mouse down no botão =====');
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onMouseUp={(e) => {
+                console.log('[PAYWALL] ===== Mouse up no botão =====');
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onTouchStart={(e) => {
+                console.log('[PAYWALL] ===== Touch start no botão =====');
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onTouchEnd={(e) => {
+                console.log('[PAYWALL] ===== Touch end no botão =====');
+                e.preventDefault();
+                e.stopPropagation();
+                handleCheckout();
+              }}
+              className="page-button"
+              type="button"
+              style={{ 
+                zIndex: 1001, 
+                position: 'relative',
+                width: '100%',
+                marginTop: '16px',
+                pointerEvents: 'auto',
+                cursor: 'pointer'
+              }}
+            >
+              Desbloquear Relatório
+            </button>
+          </div>
 
           <p className="mt-6 text-xs text-white/50">
             Sem compromisso. Acesso imediato após desbloqueio.

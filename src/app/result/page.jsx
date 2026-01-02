@@ -79,7 +79,13 @@ export default function ResultPage() {
     loadResult();
   }, [router]);
 
-  const handleViewReport = () => {
+  const handleViewReport = (e) => {
+    console.log('[RESULT] ===== Botão "Acessar a leitura completa" clicado =====');
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    console.log('[RESULT] Redirecionando para /paywall...');
     router.push("/paywall");
   };
 
@@ -178,8 +184,14 @@ export default function ResultPage() {
           {/* 6. CTA para relatório premium */}
           <div className="result-narrative-cta">
             <button
-              onClick={handleViewReport}
+              onClick={(e) => {
+                console.log('[RESULT] ===== BOTÃO CLICADO (onClick) =====');
+                handleViewReport(e);
+              }}
+              onMouseDown={() => console.log('[RESULT] Mouse down no botão')}
+              onMouseUp={() => console.log('[RESULT] Mouse up no botão')}
               className="result-narrative-button"
+              type="button"
             >
               Acessar a leitura completa
             </button>

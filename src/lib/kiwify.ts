@@ -101,19 +101,49 @@ export function redirectToKiwifyCheckout(
   sessionId: string | null,
   productUrl: string
 ): void {
+  console.log('[KIWIFY] ===== redirectToKiwifyCheckout CHAMADO =====');
+  console.log('[KIWIFY] SessionId:', sessionId);
+  console.log('[KIWIFY] ProductUrl:', productUrl);
+  console.log('[KIWIFY] typeof window:', typeof window);
+  console.log('[KIWIFY] window.location existe?', typeof window !== 'undefined' && !!window.location);
+  
   try {
     const checkoutUrl = buildKiwifyCheckoutUrl(sessionId, productUrl);
-    console.log('[KIWIFY] Redirecionando para:', checkoutUrl);
+    console.log('[KIWIFY] ✅ URL construída com sucesso:', checkoutUrl);
+    console.log('[KIWIFY] Tentando redirecionar...');
     
-    // Usar window.location.replace para evitar que o usuário volte
-    // ou window.open se quiser abrir em nova aba
-    if (window.location) {
-      window.location.href = checkoutUrl;
-    } else {
-      console.error('[KIWIFY] window.location não disponível');
+    if (typeof window === 'undefined') {
+      console.error('[KIWIFY] ❌ window não está disponível (SSR)');
+      throw new Error('window não está disponível');
     }
+    
+    if (!window.location) {
+      console.error('[KIWIFY] ❌ window.location não está disponível');
+      throw new Error('window.location não está disponível');
+    }
+    
+    console.log('[KIWIFY] ✅ window.location disponível, fazendo redirect...');
+    console.log('[KIWIFY] URL atual:', window.location.href);
+    console.log('[KIWIFY] URL destino:', checkoutUrl);
+    
+    // Forçar o redirecionamento
+    window.location.href = checkoutUrl;
+    
+    console.log('[KIWIFY] ✅ window.location.href definido');
+    
+    // Fallback: tentar também com replace após um pequeno delay
+    setTimeout(() => {
+      if (window.location.href !== checkoutUrl) {
+        console.warn('[KIWIFY] ⚠️ Redirect não funcionou, tentando com replace...');
+        window.location.replace(checkoutUrl);
+      }
+    }, 100);
+    
   } catch (error) {
-    console.error('[KIWIFY] Erro ao construir URL do checkout:', error);
+    console.error('[KIWIFY] ❌ Erro ao redirecionar:', error);
+    if (error instanceof Error) {
+      console.error('[KIWIFY] Stack trace:', error.stack);
+    }
     throw error;
   }
 }
