@@ -89,14 +89,22 @@ export async function GET(
     }
 
     // Verificar se existe pagamento aprovado para esta sessão
-    const { data: payment, error: paymentError } = await supabase
+    const { data: payments, error: paymentError } = await supabase
       .from('kiwify_orders')
       .select('order_id, status, approved_date')
       .eq('s1', sessionId)
-      .or('status.eq.paid,status.eq.approved,status.eq.completed,approved_date.not.is.null')
       .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(10);
+
+    if (paymentError) {
+      console.error('[REPORT] Erro ao verificar pagamento:', paymentError);
+    }
+
+    // Verificar se algum pagamento está aprovado
+    const payment = payments?.find(p => {
+      const status = p.status?.toLowerCase() || '';
+      return ['paid', 'approved', 'completed'].includes(status) || !!p.approved_date;
+    });
 
     if (paymentError) {
       console.error('[REPORT] Erro ao verificar pagamento:', paymentError);
