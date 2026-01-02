@@ -159,21 +159,6 @@ export default function PaywallPage() {
       <section className="page-center paywall-center" style={{ padding: '24px', minHeight: '100vh', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflow: 'visible' }}>
         <div className="page-card" style={{ maxWidth: "640px", borderRadius: "26px", padding: "48px 40px", margin: '40px auto' }}>
           <div className="mb-12" style={{ textAlign: 'center' }}>
-            <div className="w-2 h-2 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10" style={{ backdropFilter: "blur(8px)" }}>
-              <svg
-                className="w-1.5 h-1.5 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-            </div>
             <h1 className="page-title" style={{ fontSize: "38px", marginBottom: "16px", fontWeight: 600, lineHeight: 1.2, color: "#FFFFFF" }}>
               Acesso Premium ao Seu Mapa de Decisão
             </h1>
@@ -183,108 +168,40 @@ export default function PaywallPage() {
           </div>
 
           <div className="mb-10" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div className="flex items-start space-x-3">
-              <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/10">
-                <svg
-                  className="w-3 h-3 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2.5}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-2" style={{ fontSize: "17px", fontWeight: 600 }}>
-                  Entendimento Profundo do Seu Funcionamento
-                </h3>
-                <p className="text-white/70" style={{ fontSize: "15px", lineHeight: 1.6 }}>
-                  Acesse uma explicação estruturada sobre como seus padrões de decisão se organizam, por que certos comportamentos se repetem e como isso impacta escolhas, constância e direção.
-                </p>
-              </div>
+            <div>
+              <h3 className="font-semibold text-white mb-2" style={{ fontSize: "17px", fontWeight: 600 }}>
+                Entendimento Profundo do Seu Funcionamento
+              </h3>
+              <p className="text-white/70" style={{ fontSize: "15px", lineHeight: 1.6 }}>
+                Acesse uma explicação estruturada sobre como seus padrões de decisão se organizam, por que certos comportamentos se repetem e como isso impacta escolhas, constância e direção.
+              </p>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/10">
-                <svg
-                  className="w-3 h-3 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2.5}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-2" style={{ fontSize: "17px", fontWeight: 600 }}>
-                  Direcionamento Prático e Aplicável
-                </h3>
-                <p className="text-white/70" style={{ fontSize: "15px", lineHeight: 1.6 }}>
-                  Conteúdo orientado à ação, com ajustes possíveis para o dia a dia. Sem teoria excessiva, sem promessas irreais.
-                </p>
-              </div>
+            <div>
+              <h3 className="font-semibold text-white mb-2" style={{ fontSize: "17px", fontWeight: 600 }}>
+                Direcionamento Prático e Aplicável
+              </h3>
+              <p className="text-white/70" style={{ fontSize: "15px", lineHeight: 1.6 }}>
+                Conteúdo orientado à ação, com ajustes possíveis para o dia a dia. Sem teoria excessiva, sem promessas irreais.
+              </p>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/10">
-                <svg
-                  className="w-3 h-3 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2.5}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-2" style={{ fontSize: "17px", fontWeight: 600 }}>
-                  Plano Guiado de 7 Dias
-                </h3>
-                <p className="text-white/70" style={{ fontSize: "15px", lineHeight: 1.6 }}>
-                  Um roteiro simples para transformar entendimento em movimento real, respeitando ritmo, clareza e sustentabilidade.
-                </p>
-              </div>
+            <div>
+              <h3 className="font-semibold text-white mb-2" style={{ fontSize: "17px", fontWeight: 600 }}>
+                Plano Guiado de 7 Dias
+              </h3>
+              <p className="text-white/70" style={{ fontSize: "15px", lineHeight: 1.6 }}>
+                Um roteiro simples para transformar entendimento em movimento real, respeitando ritmo, clareza e sustentabilidade.
+              </p>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/10">
-                <svg
-                  className="w-3 h-3 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2.5}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-2" style={{ fontSize: "17px", fontWeight: 600 }}>
-                  Conteúdo Personalizado ao Seu Perfil
-                </h3>
-                <p className="text-white/70" style={{ fontSize: "15px", lineHeight: 1.6 }}>
-                  Todo o conteúdo é gerado a partir das suas respostas. Não é genérico, não é igual para todos e não depende de interpretação subjetiva.
-                </p>
-              </div>
+            <div>
+              <h3 className="font-semibold text-white mb-2" style={{ fontSize: "17px", fontWeight: 600 }}>
+                Conteúdo Personalizado ao Seu Perfil
+              </h3>
+              <p className="text-white/70" style={{ fontSize: "15px", lineHeight: 1.6 }}>
+                Todo o conteúdo é gerado a partir das suas respostas. Não é genérico, não é igual para todos e não depende de interpretação subjetiva.
+              </p>
             </div>
           </div>
 

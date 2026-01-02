@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Quiz Premium",
+  title: "Mapa de Decisão",
   description: "Descubra seu perfil através do nosso quiz",
 };
 
