@@ -5,6 +5,6 @@ export default function PaymentSuccessLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <div>{children}</div>;
 }
 
