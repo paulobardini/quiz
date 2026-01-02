@@ -525,24 +525,44 @@ export async function GET(
     let blocks = [];
     let premiumTitle = null;
     
+    console.log('[REPORT] Buscando premium_report_content para profile_id:', dominantProfile.id);
+    
     if (dominantProfile.id && dominantProfile.id !== 'fallback') {
-      const { data: premiumContent } = await supabase
+      const { data: premiumContent, error: premiumError } = await supabase
         .from('premium_report_content')
-        .select('title, blocks')
+        .select('title, blocks, version')
         .eq('profile_id', dominantProfile.id)
-        .eq('is_active', true)
         .order('version', { ascending: false })
         .limit(1)
         .maybeSingle();
 
+      if (premiumError) {
+        console.error('[REPORT] Erro ao buscar premium_report_content:', premiumError);
+      }
+
+      console.log('[REPORT] Premium content encontrado:', {
+        hasContent: !!premiumContent,
+        hasTitle: !!premiumContent?.title,
+        hasBlocks: !!premiumContent?.blocks,
+        blocksCount: premiumContent?.blocks ? (Array.isArray(premiumContent.blocks) ? premiumContent.blocks.length : 0) : 0,
+        version: premiumContent?.version
+      });
+
       if (premiumContent) {
         if (premiumContent.blocks && Array.isArray(premiumContent.blocks)) {
           blocks = premiumContent.blocks;
+          console.log('[REPORT] Blocos carregados:', blocks.length, 'blocos');
+        } else {
+          console.warn('[REPORT] Premium content encontrado mas blocks não é array:', typeof premiumContent.blocks);
         }
         if (premiumContent.title) {
           premiumTitle = premiumContent.title;
         }
+      } else {
+        console.warn('[REPORT] Nenhum premium_report_content encontrado para profile_id:', dominantProfile.id);
       }
+    } else {
+      console.warn('[REPORT] Profile ID inválido ou fallback:', dominantProfile.id);
     }
 
     // Fallback: se não encontrou blocos, criar estrutura básica
@@ -629,13 +649,24 @@ export async function GET(
     }
 
     // Ordenar blocos por order
-    blocks.sort((a, b) => (a.order || 0) - (b.order || 0));
+    if (blocks.length > 0) {
+      blocks.sort((a, b) => {
+        const orderA = typeof a.order === 'number' ? a.order : parseInt(a.order || '0', 10);
+        const orderB = typeof b.order === 'number' ? b.order : parseInt(b.order || '0', 10);
+        return orderA - orderB;
+      });
+      console.log('[REPORT] Blocos ordenados:', blocks.map(b => ({ order: b.order, title: b.title })));
+    }
 
     // Se encontrou blocos do premium_report_content, retornar no formato esperado
-    if (blocks.length > 0 && premiumTitle) {
+    if (blocks.length > 0) {
+      console.log('[REPORT] Retornando relatório com blocos dinâmicos:', {
+        title: premiumTitle || 'Sem título',
+        blocksCount: blocks.length
+      });
       return NextResponse.json({
         resultId,
-        title: premiumTitle,
+        title: premiumTitle || 'Leitura Completa do Seu Padrão de Decisão',
         blocks: blocks,
         dominant: {
           domain: dominantDomain,
@@ -646,6 +677,7 @@ export async function GET(
     }
 
     // Fallback: retornar estrutura antiga se não encontrou blocos
+    console.warn('[REPORT] Nenhum bloco encontrado, usando fallback');
     return NextResponse.json({
       resultId,
       dominant: {

@@ -224,8 +224,13 @@ function ReportContent() {
   }
 
   // Se veio de premium_report_content (tem title e blocks) OU de /api/report/[resultId] com blocos
-  if (report.title && report.blocks && Array.isArray(report.blocks)) {
-    const sortedBlocks = [...report.blocks].sort((a, b) => (a.order || 0) - (b.order || 0));
+  if (report.title && report.blocks && Array.isArray(report.blocks) && report.blocks.length > 0) {
+    console.log('[REPORT PAGE] Renderizando blocos dinâmicos:', report.blocks.length, 'blocos');
+    const sortedBlocks = [...report.blocks].sort((a, b) => {
+      const orderA = typeof a.order === 'number' ? a.order : parseInt(a.order || '0', 10);
+      const orderB = typeof b.order === 'number' ? b.order : parseInt(b.order || '0', 10);
+      return orderA - orderB;
+    });
 
     return (
       <main className="page-root result-page" style={{ position: 'relative' }}>
