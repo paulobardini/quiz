@@ -1,16 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import { getResultId, getSessionId } from "@/lib/storage";
 
 const LP_BG_URL =
   process.env.NEXT_PUBLIC_LP_BG_URL ||
   "https://i.ibb.co/yn3dKqtQ/pexels-njeromin-28203471.jpg";
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [status, setStatus] = useState<'checking' | 'approved' | 'pending' | 'error'>('checking');
   const [message, setMessage] = useState('Verificando pagamento...');
 
@@ -34,9 +33,10 @@ export default function PaymentSuccessPage() {
 
     const checkPayment = async () => {
       try {
-        // Obter parâmetros da URL
-        const orderId = searchParams.get('order_id') || searchParams.get('orderId');
-        const s1 = searchParams.get('s1');
+        // Obter parâmetros da URL diretamente
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order_id') || urlParams.get('orderId');
+        const s1 = urlParams.get('s1');
         
         console.log('[PAYMENT SUCCESS] Parâmetros recebidos:', { orderId, s1 });
         
@@ -135,7 +135,7 @@ export default function PaymentSuccessPage() {
         html.style.height = "";
       }
     };
-  }, [router, searchParams]);
+  }, [router]);
 
   return (
     <main className="page-root paywall-page" style={{ overflowY: 'auto', height: 'auto', minHeight: '100vh' }}>
@@ -249,6 +249,31 @@ export default function PaymentSuccessPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={
+      <main className="page-root paywall-page" style={{ overflowY: 'auto', height: 'auto', minHeight: '100vh' }}>
+        <div className="page-bg" style={{ backgroundImage: `url(${LP_BG_URL})` }} />
+        <div className="page-overlay" />
+        <section className="page-center paywall-center" style={{ padding: '24px', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
+          <div className="page-card" style={{ maxWidth: "640px", borderRadius: "26px", padding: "48px 40px", margin: 'auto' }}>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10 animate-spin">
+                <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full"></div>
+              </div>
+              <h1 className="page-title" style={{ fontSize: "32px", marginBottom: "16px" }}>
+                Carregando...
+              </h1>
+            </div>
+          </div>
+        </section>
+      </main>
+    }>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }
 
