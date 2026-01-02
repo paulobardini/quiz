@@ -209,20 +209,35 @@ export async function GET(
           const roundedScore = Math.round(Math.max(0, Math.min(100, score)));
           console.log('[REPORT] Score do domínio primário:', roundedScore);
           
-          // Buscar regra de perfil - tentar com range mais amplo
-          const { data: rule, error: ruleError } = await supabase
+          // Buscar regra de perfil - buscar regra onde o score está dentro do range
+          const { data: rules, error: ruleError } = await supabase
             .from('quiz_profile_rules')
-            .select('profile_key')
+            .select('profile_key, min_score, max_score')
             .eq('domain', primaryDomainKey)
             .eq('algorithm_version', 'v1')
-            .gte('min_score', roundedScore)
-            .lte('max_score', roundedScore)
-            .maybeSingle();
+            .order('min_score', { ascending: true });
+
+          if (ruleError) console.error('[REPORT] Erro ao buscar regras:', ruleError);
+
+          // Encontrar a regra que contém o score
+          let rule = null;
+          if (rules && rules.length > 0) {
+            rule = rules.find(r => roundedScore >= r.min_score && roundedScore <= r.max_score);
+            if (!rule) {
+              // Se não encontrou exato, pegar a regra mais próxima
+              rule = rules.reduce((closest, current) => {
+                const currentDist = Math.abs((current.min_score + current.max_score) / 2 - roundedScore);
+                const closestDist = Math.abs((closest.min_score + closest.max_score) / 2 - roundedScore);
+                return currentDist < closestDist ? current : closest;
+              });
+              console.log('[REPORT] Regra exata não encontrada, usando regra mais próxima:', rule);
+            }
+          }
 
           if (ruleError) console.error('[REPORT] Erro ao buscar regra:', ruleError);
 
           if (rule?.profile_key) {
-            console.log('[REPORT] Regra encontrada, profile_key:', rule.profile_key);
+            console.log('[REPORT] Regra encontrada, profile_key:', rule.profile_key, 'range:', rule.min_score, '-', rule.max_score);
             const { data: profile, error: profileError } = await supabase
               .from('quiz_profiles')
               .select('id, key, name')
@@ -237,9 +252,23 @@ export async function GET(
               console.log('[REPORT] Perfil encontrado no fallback:', profile.key);
             } else {
               console.warn('[REPORT] Perfil não encontrado com key:', rule.profile_key, 'e domain_id:', domain.id);
+              // Tentar buscar sem domain_id como último recurso
+              const { data: profileFallback } = await supabase
+                .from('quiz_profiles')
+                .select('id, key, name')
+                .eq('key', rule.profile_key)
+                .maybeSingle();
+              
+              if (profileFallback) {
+                dominantProfile = profileFallback;
+                console.log('[REPORT] Perfil encontrado sem domain_id:', profileFallback.key);
+              }
             }
           } else {
             console.warn('[REPORT] Regra não encontrada para domain:', primaryDomainKey, 'score:', roundedScore);
+            if (rules && rules.length > 0) {
+              console.warn('[REPORT] Regras disponíveis:', rules);
+            }
           }
         } else {
           console.warn('[REPORT] Domínio não encontrado com key:', primaryDomainKey);
