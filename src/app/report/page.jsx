@@ -23,6 +23,7 @@ function ReportContent() {
   const reportContainerRef = useRef(null);
   const [isTableOfContentsOpen, setIsTableOfContentsOpen] = useState(false);
   const [isTableOfContentsDesktopOpen, setIsTableOfContentsDesktopOpen] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -46,6 +47,21 @@ function ReportContent() {
       html.style.overflow = "";
       html.style.height = "";
     };
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const progress = (scrollTop / (documentHeight - windowHeight)) * 100;
+      setScrollProgress(Math.min(100, Math.max(0, progress)));
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Calcular inicialmente
+
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -415,180 +431,254 @@ function ReportContent() {
           opacity: 0.2
         }} />
         
+        {/* Linha de progresso de leitura */}
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '2px',
+          backgroundColor: 'rgba(255, 255, 255, 0.22)',
+          zIndex: 1000
+        }}>
+          <div style={{
+            height: '100%',
+            width: `${scrollProgress}%`,
+            backgroundColor: 'rgba(255, 255, 255, 0.22)',
+            transition: 'width 0.1s ease'
+          }} />
+        </div>
+
         <div style={{ 
           maxWidth: '720px', 
           margin: '0 auto', 
-          padding: '80px 24px',
+          padding: '72px 32px',
           position: 'relative',
           zIndex: 10
-        }}>
+        }} className="hero-container-desktop">
+          <div style={{ 
+            maxWidth: '720px', 
+            margin: '0 auto', 
+            padding: '48px 24px',
+            position: 'relative',
+            zIndex: 10
+          }} className="hero-container-mobile">
           
           <div 
             ref={reportContainerRef} 
             style={{ 
               position: 'relative',
               zIndex: 2,
-              color: '#E5E5E5'
+              color: '#EDEDED'
             }}
           >
             {/* CAPA */}
             <section style={{
               width: '100%',
-              padding: '32px 0 32px 0',
-              marginBottom: '48px',
-              textAlign: 'center',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-              paddingBottom: '32px'
-            }}>
+              paddingTop: '72px',
+              paddingBottom: '48px',
+              marginBottom: '0',
+              textAlign: 'left'
+            }} className="hero-section-desktop">
+              <section style={{
+                width: '100%',
+                paddingTop: '48px',
+                paddingBottom: '32px',
+                marginBottom: '0',
+                textAlign: 'left'
+              }} className="hero-section-mobile">
+              
               <h1 style={{ 
-                fontSize: '36px', 
-                fontWeight: 400, 
-                marginBottom: '20px',
-                color: '#E5E5E5',
-                lineHeight: 1.4,
-                letterSpacing: '-0.3px'
+                fontSize: 'clamp(32px, 4vw, 44px)', 
+                fontWeight: 600, 
+                marginBottom: '14px',
+                color: '#EDEDED',
+                lineHeight: 1.08,
+                letterSpacing: '-0.02em'
               }}>
-                {toCamelCase(report.title || '')}
+                Leitura completa do seu padrão de decisão
               </h1>
               
               <p style={{
-                fontSize: '16px',
-                opacity: 0.7,
-                marginBottom: '0',
-                color: '#E5E5E5',
-                lineHeight: 1.6,
+                fontSize: 'clamp(16px, 2vw, 18px)',
+                opacity: 0.78,
+                marginBottom: '14px',
+                color: '#BDBDBD',
+                lineHeight: 1.55,
                 fontWeight: 300,
-                maxWidth: '600px',
-                margin: '0 auto'
+                maxWidth: '520px'
               }}>
-                Leitura completa para entender seu padrão e ajustar decisões com método. Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
+                Leitura completa para entender seu padrão e ajustar decisões com método.<br />
+                Não é diagnóstico. É leitura orientativa baseada nas suas respostas.
               </p>
+
+              {/* Micro selo de credibilidade */}
+              <p style={{
+                fontSize: '13px',
+                opacity: 0.6,
+                marginTop: '14px',
+                marginBottom: '0',
+                color: '#BDBDBD',
+                fontWeight: 300
+              }}>
+                Baseado nas suas respostas. Estrutura em 7 blocos. Leitura de 5 a 8 minutos.
+              </p>
+
+              {/* Badge do perfil */}
+              {(() => {
+                const profileName = report.profileName || extractProfileNameFromFirstParagraph(sortedBlocks);
+                if (profileName) {
+                  return (
+                    <div style={{
+                      marginTop: '14px'
+                    }}>
+                      <div style={{
+                        fontSize: '12px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        opacity: 0.6,
+                        color: '#BDBDBD',
+                        fontWeight: 300
+                      }}>
+                        Seu padrão dominante
+                      </div>
+                      <div style={{
+                        fontSize: 'clamp(22px, 3vw, 26px)',
+                        fontWeight: 600,
+                        marginTop: '6px',
+                        color: '#EDEDED'
+                      }}>
+                        {String(profileName)}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Divisor discreto */}
+              <div style={{
+                height: '1px',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                marginTop: '28px',
+                marginBottom: '28px'
+              }} />
+
+              {/* Disclaimer */}
+              <p style={{
+                fontSize: '13px',
+                opacity: 0.55,
+                marginTop: '16px',
+                marginBottom: '0',
+                color: '#BDBDBD',
+                fontWeight: 300,
+                textAlign: 'left'
+              }}>
+                Não é diagnóstico. É uma leitura de padrões e direcionamento prático.
+              </p>
+              </section>
             </section>
 
-            {/* SUMÁRIO - Desktop (fixo lateral) e Mobile (colapsável) */}
+            {/* Container com duas colunas no desktop */}
             <div style={{
-              position: 'sticky',
-              top: '100px',
-              alignSelf: 'flex-start',
-              zIndex: 100,
-              display: 'none'
-            }} className="table-of-contents-desktop">
-              <button
-                onClick={() => setIsTableOfContentsDesktopOpen(!isTableOfContentsDesktopOpen)}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  borderRadius: '4px',
-                  color: '#E5E5E5',
-                  fontSize: '13px',
-                  fontWeight: 400,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  opacity: 0.85,
-                  transition: 'all 0.2s ease',
-                  marginBottom: isTableOfContentsDesktopOpen ? '12px' : '0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  minWidth: '200px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = '1';
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = '0.85';
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                }}
-              >
-                <span>Índice</span>
-                <span style={{ fontSize: '10px', opacity: 0.7 }}>
-                  {isTableOfContentsDesktopOpen ? '▼' : '▶'}
-                </span>
-              </button>
+              display: 'flex',
+              gap: '48px',
+              alignItems: 'flex-start'
+            }} className="content-layout-desktop">
               
-              {isTableOfContentsDesktopOpen && (
+              {/* Índice Desktop - Coluna Esquerda */}
+              <aside style={{
+                width: '240px',
+                flexShrink: 0,
+                display: 'none'
+              }} className="table-of-contents-desktop">
                 <div style={{
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  padding: '0',
-                  minWidth: '200px'
+                  fontSize: '12px',
+                  textTransform: 'uppercase',
+                  opacity: 0.55,
+                  color: '#BDBDBD',
+                  fontWeight: 300,
+                  marginBottom: '16px',
+                  letterSpacing: '0.08em'
                 }}>
-                  <nav>
-                    {sortedBlocks.map((block, idx) => (
-                      <a
-                        key={block.block_id || idx}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          scrollToBlock(block.block_id || `block-${idx}`);
-                        }}
-                        style={{
-                          display: 'block',
-                          padding: '8px 0',
-                          fontSize: '14px',
-                          color: '#E5E5E5',
-                          opacity: 0.7,
-                          cursor: 'pointer',
-                          textDecoration: 'none',
-                          borderBottom: 'none',
-                          transition: 'opacity 0.2s',
-                          fontWeight: 300,
-                          lineHeight: 1.6
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                        onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
-                      >
-                        {removeBlockPrefix(block.title || '')}
-                      </a>
-                    ))}
-                  </nav>
+                  Índice
                 </div>
-              )}
-            </div>
+                <nav>
+                  {sortedBlocks.map((block, idx) => (
+                    <a
+                      key={block.block_id || idx}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        scrollToBlock(block.block_id || `block-${idx}`);
+                      }}
+                      style={{
+                        display: 'block',
+                        padding: '10px 0',
+                        fontSize: '14px',
+                        color: '#EDEDED',
+                        opacity: 0.72,
+                        cursor: 'pointer',
+                        textDecoration: 'none',
+                        borderBottom: 'none',
+                        fontWeight: 300,
+                        lineHeight: 1.5,
+                        transition: 'opacity 0.2s',
+                        position: 'relative',
+                        paddingLeft: '0'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0.72'}
+                    >
+                      {removeBlockPrefix(block.title || '')}
+                    </a>
+                  ))}
+                </nav>
+              </aside>
 
-            {/* Botão Mobile para Sumário */}
+              {/* Conteúdo - Coluna Direita */}
+              <div style={{
+                flex: 1,
+                minWidth: 0
+              }} className="content-main-desktop">
+
+            {/* Índice Mobile - Acordeão discreto */}
             <div style={{
               display: 'block',
-              marginBottom: '40px'
+              marginBottom: '32px'
             }} className="table-of-contents-mobile">
               <button
                 onClick={() => setIsTableOfContentsOpen(!isTableOfContentsOpen)}
                 style={{
                   width: '100%',
-                  padding: '12px 16px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  borderRadius: '4px',
-                  color: '#E5E5E5',
-                  fontSize: '14px',
-                  fontWeight: 400,
+                  padding: '8px 0',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: '#BDBDBD',
+                  fontSize: '13px',
+                  fontWeight: 300,
                   cursor: 'pointer',
                   textAlign: 'left',
-                  opacity: 0.85,
-                  transition: 'all 0.2s ease',
+                  opacity: 0.6,
+                  transition: 'opacity 0.2s',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = '1';
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.opacity = '0.8';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = '0.85';
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                  e.currentTarget.style.opacity = '0.6';
                 }}
               >
-                <span>Índice</span>
-                <span style={{ fontSize: '10px', opacity: 0.7 }}>
+                <span>Ver índice</span>
+                <span style={{ fontSize: '10px', opacity: 0.5, marginLeft: '8px' }}>
                   {isTableOfContentsOpen ? '▼' : '▶'}
                 </span>
               </button>
               
               {isTableOfContentsOpen && (
-                <div style={{
+                <nav style={{
                   marginTop: '16px',
                   backgroundColor: 'transparent',
                   border: 'none',
@@ -605,19 +695,19 @@ function ReportContent() {
                         display: 'block',
                         padding: '10px 0',
                         fontSize: '14px',
-                        color: '#E5E5E5',
-                        opacity: 0.7,
+                        color: '#EDEDED',
+                        opacity: 0.72,
                         cursor: 'pointer',
                         textDecoration: 'none',
                         borderBottom: 'none',
                         fontWeight: 300,
-                        lineHeight: 1.6
+                        lineHeight: 1.5
                       }}
                     >
                       {removeBlockPrefix(block.title || '')}
                     </a>
                   ))}
-                </div>
+                </nav>
               )}
             </div>
 
@@ -770,6 +860,9 @@ function ReportContent() {
               );
             })}
 
+              </div>
+            </div>
+
             {/* RODAPÉ PREMIUM */}
             <section style={{ 
               marginTop: '80px',
@@ -832,24 +925,45 @@ function ReportContent() {
               </p>
             </section>
           </div>
+          </div>
         </div>
 
         <style jsx>{`
           @media (min-width: 1200px) {
+            .hero-container-mobile {
+              display: none !important;
+            }
+            .hero-section-mobile {
+              display: none !important;
+            }
+            .content-layout-desktop {
+              display: flex !important;
+            }
             .table-of-contents-desktop {
               display: block !important;
-              position: fixed;
-              right: max(24px, calc((100vw - 1200px) / 2));
-              top: 120px;
-              max-width: 200px;
+            }
+            .content-main-desktop {
+              display: block !important;
             }
             .table-of-contents-mobile {
               display: none !important;
             }
           }
           @media (max-width: 1199px) {
+            .hero-container-desktop {
+              display: none !important;
+            }
+            .hero-section-desktop {
+              display: none !important;
+            }
+            .content-layout-desktop {
+              display: block !important;
+            }
             .table-of-contents-desktop {
               display: none !important;
+            }
+            .content-main-desktop {
+              display: block !important;
             }
             .table-of-contents-mobile {
               display: block !important;
