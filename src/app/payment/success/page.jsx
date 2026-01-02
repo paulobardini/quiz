@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getResultId, getSessionId } from "@/lib/storage";
 
@@ -8,12 +8,19 @@ const LP_BG_URL =
   process.env.NEXT_PUBLIC_LP_BG_URL ||
   "https://i.ibb.co/yn3dKqtQ/pexels-njeromin-28203471.jpg";
 
-function PaymentSuccessContent() {
+export default function PaymentSuccessPage() {
   const router = useRouter();
   const [status, setStatus] = useState<'checking' | 'approved' | 'pending' | 'error'>('checking');
   const [message, setMessage] = useState('Verificando pagamento...');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     // Habilitar scroll
     const html = document.documentElement;
     const body = document.body;
@@ -135,7 +142,29 @@ function PaymentSuccessContent() {
         html.style.height = "";
       }
     };
-  }, [router]);
+  }, [router, mounted]);
+
+  // Não renderizar até estar montado no cliente
+  if (!mounted) {
+    return (
+      <main className="page-root paywall-page" style={{ overflowY: 'auto', height: 'auto', minHeight: '100vh' }}>
+        <div className="page-bg" style={{ backgroundImage: `url(${LP_BG_URL})` }} />
+        <div className="page-overlay" />
+        <section className="page-center paywall-center" style={{ padding: '24px', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
+          <div className="page-card" style={{ maxWidth: "640px", borderRadius: "26px", padding: "48px 40px", margin: 'auto' }}>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10 animate-spin">
+                <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full"></div>
+              </div>
+              <h1 className="page-title" style={{ fontSize: "32px", marginBottom: "16px" }}>
+                Carregando...
+              </h1>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="page-root paywall-page" style={{ overflowY: 'auto', height: 'auto', minHeight: '100vh' }}>
@@ -251,29 +280,3 @@ function PaymentSuccessContent() {
     </main>
   );
 }
-
-export default function PaymentSuccessPage() {
-  return (
-    <Suspense fallback={
-      <main className="page-root paywall-page" style={{ overflowY: 'auto', height: 'auto', minHeight: '100vh' }}>
-        <div className="page-bg" style={{ backgroundImage: `url(${LP_BG_URL})` }} />
-        <div className="page-overlay" />
-        <section className="page-center paywall-center" style={{ padding: '24px', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
-          <div className="page-card" style={{ maxWidth: "640px", borderRadius: "26px", padding: "48px 40px", margin: 'auto' }}>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10 animate-spin">
-                <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full"></div>
-              </div>
-              <h1 className="page-title" style={{ fontSize: "32px", marginBottom: "16px" }}>
-                Carregando...
-              </h1>
-            </div>
-          </div>
-        </section>
-      </main>
-    }>
-      <PaymentSuccessContent />
-    </Suspense>
-  );
-}
-
