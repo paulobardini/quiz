@@ -50,24 +50,28 @@ export default function PaywallPage() {
   }, [router]);
 
   const handleCheckout = () => {
+    console.log('[PAYWALL] ===== handleCheckout CHAMADO =====');
     const sessionId = getSessionId();
     
     console.log('[PAYWALL] Iniciando checkout...');
     console.log('[PAYWALL] SessionId:', sessionId);
     console.log('[PAYWALL] KIWIFY_PRODUCT_URL:', KIWIFY_PRODUCT_URL);
+    console.log('[PAYWALL] Tipo de KIWIFY_PRODUCT_URL:', typeof KIWIFY_PRODUCT_URL);
+    console.log('[PAYWALL] Tamanho de KIWIFY_PRODUCT_URL:', KIWIFY_PRODUCT_URL?.length);
     
     if (!KIWIFY_PRODUCT_URL || KIWIFY_PRODUCT_URL.trim() === '') {
-      console.error("[PAYWALL] KIWIFY_PRODUCT_URL não configurado ou vazio");
+      console.error("[PAYWALL] ❌ KIWIFY_PRODUCT_URL não configurado ou vazio");
       alert("Erro: URL do checkout não configurada. Entre em contato com o suporte.");
       return;
     }
 
     try {
       // Redireciona para o checkout da Kiwify com tracking
-      console.log('[PAYWALL] Redirecionando para checkout...');
+      console.log('[PAYWALL] ✅ Redirecionando para checkout...');
       redirectToKiwifyCheckout(sessionId, KIWIFY_PRODUCT_URL);
     } catch (error) {
-      console.error("[PAYWALL] Erro ao redirecionar para checkout:", error);
+      console.error("[PAYWALL] ❌ Erro ao redirecionar para checkout:", error);
+      console.error("[PAYWALL] Stack trace:", error instanceof Error ? error.stack : 'N/A');
       alert("Erro ao redirecionar para o checkout. Tente novamente.");
     }
   };
@@ -187,13 +191,17 @@ export default function PaywallPage() {
 
           <button
             onClick={(e) => {
+              console.log('[PAYWALL] ===== BOTÃO CLICADO =====');
               e.preventDefault();
               e.stopPropagation();
-              console.log('[PAYWALL] Botão clicado!');
+              console.log('[PAYWALL] Evento capturado, chamando handleCheckout...');
               handleCheckout();
             }}
+            onMouseDown={() => console.log('[PAYWALL] Mouse down no botão')}
+            onMouseUp={() => console.log('[PAYWALL] Mouse up no botão')}
             className="page-button"
             type="button"
+            style={{ zIndex: 1000, position: 'relative' }}
           >
             Desbloquear Relatório
           </button>
