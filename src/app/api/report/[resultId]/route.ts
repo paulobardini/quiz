@@ -536,6 +536,14 @@ export async function GET(
         .limit(1)
         .maybeSingle();
 
+      // Log para debug de encoding
+      if (premiumContent) {
+        console.log('[REPORT] Premium content raw:', JSON.stringify(premiumContent).substring(0, 200));
+        if (premiumContent.title) {
+          console.log('[REPORT] Title encoding check:', premiumContent.title, 'charCodeAt(0):', premiumContent.title.charCodeAt(0));
+        }
+      }
+
       if (premiumError) {
         console.error('[REPORT] Erro ao buscar premium_report_content:', premiumError);
       }
@@ -664,10 +672,20 @@ export async function GET(
         title: premiumTitle || 'Sem título',
         blocksCount: blocks.length
       });
+      // Garantir que os blocos tenham encoding correto
+      const encodedBlocks = blocks.map((block: any) => ({
+        ...block,
+        title: String(block.title || ''),
+        subtitle: block.subtitle ? String(block.subtitle) : undefined,
+        paragraphs: Array.isArray(block.paragraphs) 
+          ? block.paragraphs.map((p: any) => String(p || ''))
+          : [],
+      }));
+
       return NextResponse.json({
         resultId,
-        title: premiumTitle || 'Leitura Completa do Seu Padrão de Decisão',
-        blocks: blocks,
+        title: String(premiumTitle || 'Leitura Completa do Seu Padrão de Decisão'),
+        blocks: encodedBlocks,
         dominant: {
           domain: dominantDomain,
           profile: dominantProfile,

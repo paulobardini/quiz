@@ -274,7 +274,7 @@ function ReportContent() {
               marginBottom: '48px',
               color: '#E5E5E5'
             }}>
-              {report.title}
+              {String(report.title || '')}
             </h1>
 
             {sortedBlocks.map((block, index) => (
@@ -290,7 +290,7 @@ function ReportContent() {
                   marginBottom: '12px',
                   color: '#E5E5E5'
                 }}>
-                  {block.title || ''}
+                  {String(block.title || '')}
                 </h2>
                 
                 {block.subtitle && (
@@ -301,7 +301,7 @@ function ReportContent() {
                     marginBottom: '32px',
                     color: '#E5E5E5'
                   }}>
-                    {block.subtitle}
+                    {String(block.subtitle)}
                   </p>
                 )}
                 
@@ -453,7 +453,7 @@ function ReportContent() {
               {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
                 <>
                   {block.paragraphs.map((text, idx) => {
-                    if (!text || text.trim() === '') return null;
+                    if (!text || String(text).trim() === '') return null;
                     return (
                       <p 
                         key={idx}
@@ -465,7 +465,7 @@ function ReportContent() {
                           color: '#E5E5E5'
                         }}
                       >
-                        {text}
+                        {String(text)}
                       </p>
                     );
                   })}

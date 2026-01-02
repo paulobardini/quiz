@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
     domains: ['i.ibb.co'],
     formats: ['image/avif', 'image/webp'],
   },
+  // Garantir encoding UTF-8
+  output: 'standalone',
 };
 
 export default nextConfig;

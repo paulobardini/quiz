@@ -17,6 +17,14 @@ export function supabaseServer() {
       autoRefreshToken: false,
       persistSession: false,
     },
+    db: {
+      schema: 'public',
+    },
+    global: {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+    },
   });
 }
 

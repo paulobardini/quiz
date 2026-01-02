@@ -67,9 +67,26 @@ export async function GET(request: Request) {
       );
     }
 
+    // Garantir encoding UTF-8 nos blocos - converter para string explicitamente
+    const encodedBlocks = Array.isArray(premiumContent.blocks) 
+      ? premiumContent.blocks.map((block: any) => {
+          const encodedBlock: any = {
+            ...block,
+            title: String(block.title || ''),
+          };
+          if (block.subtitle) {
+            encodedBlock.subtitle = String(block.subtitle);
+          }
+          if (Array.isArray(block.paragraphs)) {
+            encodedBlock.paragraphs = block.paragraphs.map((p: any) => String(p || ''));
+          }
+          return encodedBlock;
+        })
+      : [];
+
     return NextResponse.json({
-      title: premiumContent.title || '',
-      blocks: premiumContent.blocks || [],
+      title: String(premiumContent.title || ''),
+      blocks: encodedBlocks,
     }, {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
