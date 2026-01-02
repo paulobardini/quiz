@@ -88,6 +88,39 @@ export async function GET(
       );
     }
 
+    // Verificar se existe pagamento aprovado para esta sessão
+    const { data: payment, error: paymentError } = await supabase
+      .from('kiwify_orders')
+      .select('order_id, status, approved_date')
+      .eq('s1', sessionId)
+      .or('status.eq.paid,status.eq.approved,status.eq.completed,approved_date.not.is.null')
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (paymentError) {
+      console.error('[REPORT] Erro ao verificar pagamento:', paymentError);
+    }
+
+    const hasApprovedPayment = !!payment && (
+      ['paid', 'approved', 'completed'].includes(payment.status?.toLowerCase() || '') ||
+      !!payment.approved_date
+    );
+
+    if (!hasApprovedPayment) {
+      console.log('[REPORT] Pagamento não aprovado para sessão:', sessionId);
+      return NextResponse.json(
+        { 
+          error: 'Pagamento não encontrado ou não aprovado',
+          requiresPayment: true,
+          message: 'É necessário ter um pagamento aprovado para acessar o relatório completo.'
+        },
+        { status: 402 } // 402 Payment Required
+      );
+    }
+
+    console.log('[REPORT] Pagamento aprovado encontrado:', payment.order_id);
+
     // Buscar domínio e perfil dominantes
     let dominantDomain: any = null;
     let dominantProfile: any = null;

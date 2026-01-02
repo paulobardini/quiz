@@ -86,6 +86,14 @@ export function buildKiwifyCheckoutUrl(
     url.searchParams.set(key, value);
   });
 
+  // Adicionar URL de retorno após o pagamento
+  if (typeof window !== 'undefined') {
+    const baseUrl = window.location.origin;
+    const returnUrl = `${baseUrl}/payment/success`;
+    url.searchParams.set('return_url', returnUrl);
+    console.log('[KIWIFY] URL de retorno configurada:', returnUrl);
+  }
+
   const finalUrlString = url.toString();
   console.log('[KIWIFY] URL final do checkout:', finalUrlString);
   
