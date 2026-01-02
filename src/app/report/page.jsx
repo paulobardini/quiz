@@ -149,16 +149,46 @@ function ReportContent() {
       const html2pdf = (await import('html2pdf.js')).default;
       
       const opt = {
-        margin: [20, 20, 20, 20],
+        margin: [0, 0, 0, 0],
         filename: 'relatorio-claridade-decisao.pdf',
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#121212' },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true, 
+          backgroundColor: '#121212',
+          logging: false
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait',
+          compress: true
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
 
       const element = reportContainerRef.current.cloneNode(true);
       element.style.backgroundColor = '#121212';
       element.style.color = '#E5E5E5';
+      element.style.padding = '20px';
+      element.style.margin = '0';
+      element.style.width = '100%';
+      element.style.minHeight = '100vh';
+      
+      // Remover rodapé (bloco de download PDF) do PDF
+      const footerSections = element.querySelectorAll('.footer-section');
+      footerSections.forEach(footer => {
+        footer.remove();
+      });
+      
+      // Criar wrapper com background preto
+      const wrapper = document.createElement('div');
+      wrapper.style.backgroundColor = '#121212';
+      wrapper.style.width = '100%';
+      wrapper.style.height = '100%';
+      wrapper.style.margin = '0';
+      wrapper.style.padding = '0';
+      wrapper.appendChild(element);
       
       // Encontrar todas as sections de blocos
       const blockSections = Array.from(element.querySelectorAll('section[id^="block-"]'));
@@ -197,6 +227,9 @@ function ReportContent() {
       // Adicionar CSS para quebras de página via style tag
       const style = document.createElement('style');
       style.textContent = `
+        * {
+          background-color: #121212 !important;
+        }
         section[id^="block-"] {
           page-break-inside: avoid !important;
           break-inside: avoid !important;
@@ -206,9 +239,9 @@ function ReportContent() {
           break-before: page !important;
         }
       `;
-      element.appendChild(style);
+      wrapper.appendChild(style);
 
-      html2pdf().set(opt).from(element).save();
+      html2pdf().set(opt).from(wrapper).save();
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
     }
