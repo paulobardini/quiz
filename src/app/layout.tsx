@@ -13,6 +13,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning style={{ margin: 0, padding: 0, overflow: "hidden" }}>
+      <head>
+        <meta charSet="utf-8" />
+      </head>
       <body className="antialiased" suppressHydrationWarning style={{ margin: 0, padding: 0 }}>
         {children}
       </body>

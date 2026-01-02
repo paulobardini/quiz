@@ -673,6 +673,10 @@ export async function GET(
           profile: dominantProfile,
         },
         domains: domainsWithLevels,
+      }, {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+        },
       });
     }
 

@@ -305,41 +305,25 @@ function ReportContent() {
                   </p>
                 )}
                 
-                {block.paragraphs && block.paragraphs.length > 0 && (
+                {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
                   <>
-                    {block.paragraphs[0] && (
-                      <p style={{ 
-                        fontSize: '17px', 
-                        lineHeight: 1.65,
-                        opacity: 0.9,
-                        marginBottom: '20px',
-                        color: '#E5E5E5'
-                      }}>
-                        {block.paragraphs[0]}
-                      </p>
-                    )}
-                    {block.paragraphs[1] && (
-                      <p style={{ 
-                        fontSize: '17px', 
-                        lineHeight: 1.65,
-                        opacity: 0.9,
-                        marginBottom: '20px',
-                        color: '#E5E5E5'
-                      }}>
-                        {block.paragraphs[1]}
-                      </p>
-                    )}
-                    {block.paragraphs[2] && (
-                      <p style={{ 
-                        fontSize: '17px', 
-                        lineHeight: 1.65,
-                        opacity: 0.9,
-                        marginBottom: 0,
-                        color: '#E5E5E5'
-                      }}>
-                        {block.paragraphs[2]}
-                      </p>
-                    )}
+                    {block.paragraphs.map((text, idx) => {
+                      if (!text || text.trim() === '') return null;
+                      return (
+                        <p 
+                          key={idx}
+                          style={{ 
+                            fontSize: '17px', 
+                            lineHeight: 1.65,
+                            opacity: 0.9,
+                            marginBottom: idx < block.paragraphs.length - 1 ? '20px' : 0,
+                            color: '#E5E5E5'
+                          }}
+                        >
+                          {text}
+                        </p>
+                      );
+                    })}
                   </>
                 )}
                 
@@ -466,41 +450,25 @@ function ReportContent() {
                 </p>
               )}
               
-              {block.paragraphs && block.paragraphs.length > 0 && (
+              {block.paragraphs && Array.isArray(block.paragraphs) && block.paragraphs.length > 0 && (
                 <>
-                  {block.paragraphs[0] && (
-                    <p style={{ 
-                      fontSize: '17px', 
-                      lineHeight: 1.65,
-                      opacity: 0.9,
-                      marginBottom: '20px',
-                      color: '#E5E5E5'
-                    }}>
-                      {block.paragraphs[0]}
-                    </p>
-                  )}
-                  {block.paragraphs[1] && (
-                    <p style={{ 
-                      fontSize: '17px', 
-                      lineHeight: 1.65,
-                      opacity: 0.9,
-                      marginBottom: '20px',
-                      color: '#E5E5E5'
-                    }}>
-                      {block.paragraphs[1]}
-                    </p>
-                  )}
-                  {block.paragraphs[2] && (
-                    <p style={{ 
-                      fontSize: '17px', 
-                      lineHeight: 1.65,
-                      opacity: 0.9,
-                      marginBottom: 0,
-                      color: '#E5E5E5'
-                    }}>
-                      {block.paragraphs[2]}
-                    </p>
-                  )}
+                  {block.paragraphs.map((text, idx) => {
+                    if (!text || text.trim() === '') return null;
+                    return (
+                      <p 
+                        key={idx}
+                        style={{ 
+                          fontSize: '17px', 
+                          lineHeight: 1.65,
+                          opacity: 0.9,
+                          marginBottom: idx < block.paragraphs.length - 1 ? '20px' : 0,
+                          color: '#E5E5E5'
+                        }}
+                      >
+                        {text}
+                      </p>
+                    );
+                  })}
                 </>
               )}
               

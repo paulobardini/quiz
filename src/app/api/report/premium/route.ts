@@ -4,6 +4,9 @@ import { supabaseServer } from '@/lib/supabase/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// Garantir encoding UTF-8
+export const revalidate = 0;
+
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
@@ -67,6 +70,10 @@ export async function GET(request: Request) {
     return NextResponse.json({
       title: premiumContent.title || '',
       blocks: premiumContent.blocks || [],
+    }, {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
     });
 
   } catch (error) {
