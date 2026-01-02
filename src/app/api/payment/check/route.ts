@@ -7,11 +7,17 @@ export const runtime = 'nodejs';
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
-    const orderId = url.searchParams.get('order_id');
+    const orderId = url.searchParams.get('order_id') || url.searchParams.get('order_code');
     const sessionId = url.searchParams.get('session_id');
     const resultId = url.searchParams.get('result_id');
 
-    console.log('[PAYMENT CHECK] Verificando pagamento:', { orderId, sessionId, resultId });
+    console.log('[PAYMENT CHECK] Verificando pagamento:', { 
+      order_id: url.searchParams.get('order_id'),
+      order_code: url.searchParams.get('order_code'),
+      orderId_final: orderId,
+      sessionId, 
+      resultId 
+    });
 
     if (!orderId && !sessionId && !resultId) {
       return NextResponse.json(

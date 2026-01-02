@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getPremiumReport } from "@/lib/api";
 import { 
   getResultId, 
+  setResultId,
   checkAndClearStorageIfNeeded,
   incrementHomeRedirectCount,
   clearQuizStorage,
@@ -56,7 +57,13 @@ export default function ReportPage() {
 
   useEffect(() => {
     const loadReport = async () => {
-      const resultId = getResultId();
+      // Tentar obter resultId da URL primeiro, depois do storage
+      const urlParams = new URLSearchParams(window.location.search);
+      let resultId = urlParams.get('resultId') || getResultId();
+      
+      console.log('[REPORT] ResultId da URL:', urlParams.get('resultId'));
+      console.log('[REPORT] ResultId do storage:', getResultId());
+      console.log('[REPORT] ResultId final:', resultId);
       
       if (!resultId) {
         incrementHomeRedirectCount();
@@ -66,6 +73,11 @@ export default function ReportPage() {
         }
         router.push("/");
         return;
+      }
+      
+      // Salvar resultId no storage se veio da URL
+      if (urlParams.get('resultId') && urlParams.get('resultId') !== getResultId()) {
+        setResultId(urlParams.get('resultId'));
       }
 
       // Verifica e limpa o storage se necessário (mesmo com resultId válido)

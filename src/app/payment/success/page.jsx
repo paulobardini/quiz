@@ -42,10 +42,16 @@ export default function PaymentSuccessPage() {
       try {
         // Obter parâmetros da URL diretamente
         const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('order_id') || urlParams.get('orderId');
+        const orderId = urlParams.get('order_id') || urlParams.get('orderId') || urlParams.get('order_code');
         const s1 = urlParams.get('s1');
         
-        console.log('[PAYMENT SUCCESS] Parâmetros recebidos:', { orderId, s1 });
+        console.log('[PAYMENT SUCCESS] Parâmetros recebidos:', { 
+          order_id: urlParams.get('order_id'),
+          orderId: urlParams.get('orderId'),
+          order_code: urlParams.get('order_code'),
+          orderId_final: orderId,
+          s1 
+        });
         
         if (!orderId && !s1) {
           console.warn('[PAYMENT SUCCESS] Nenhum parâmetro de identificação encontrado');
@@ -124,12 +130,38 @@ export default function PaymentSuccessPage() {
           setStatus('approved');
           setMessage('Pagamento aprovado! Redirecionando para o relatório...');
           
+          console.log('[PAYMENT SUCCESS] ✅ Pagamento aprovado! Redirecionando...');
+          console.log('[PAYMENT SUCCESS] ResultId:', resultId);
+          console.log('[PAYMENT SUCCESS] SessionId:', trackingSessionId);
+          
           // Redirecionar para o relatório após um pequeno delay
-          setTimeout(() => {
+          setTimeout(async () => {
+            console.log('[PAYMENT SUCCESS] Executando redirecionamento...');
             if (resultId) {
-              router.push(`/report?resultId=${resultId}`);
+              console.log('[PAYMENT SUCCESS] Redirecionando para /report com resultId:', resultId);
+              window.location.href = `/report?resultId=${resultId}`;
+            } else if (trackingSessionId) {
+              // Se não tem resultId, tentar buscar pelo sessionId
+              console.log('[PAYMENT SUCCESS] Buscando resultId pelo sessionId:', trackingSessionId);
+              try {
+                const resultResponse = await fetch(`/api/session/result-id?sessionId=${trackingSessionId}`);
+                if (resultResponse.ok) {
+                  const resultData = await resultResponse.json();
+                  if (resultData.resultId) {
+                    console.log('[PAYMENT SUCCESS] ResultId encontrado:', resultData.resultId);
+                    window.location.href = `/report?resultId=${resultData.resultId}`;
+                    return;
+                  }
+                }
+              } catch (err) {
+                console.error('[PAYMENT SUCCESS] Erro ao buscar resultId:', err);
+              }
+              // Se não encontrou resultId, redirecionar para /report mesmo assim
+              console.log('[PAYMENT SUCCESS] Redirecionando para /report sem resultId');
+              window.location.href = '/report';
             } else {
-              router.push('/report');
+              console.log('[PAYMENT SUCCESS] Redirecionando para /report sem parâmetros');
+              window.location.href = '/report';
             }
           }, 1500);
         } else if (data.pending) {
